@@ -1,0 +1,76 @@
+{
+  "name": "@sicpa-dlab/ble-react-native",
+  "version": "0.0.1",
+  "description": "React Native wrapper for Bluetooth Low Energy",
+  "main": "lib/module/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sicpa-dlab/ble-react-native"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "ble-react-native.podspec",
+    "!android/build",
+    "!ios/build",
+    "package.json",
+    "README.md"
+  ],
+  "scripts": {
+    "style:check": "npm run prettier -- --check .",
+    "style:format": "npm run prettier -- --write .",
+    "lint": "eslint . --ignore-path ./.eslintignore --ext ts --ext tsx --ext js --ext jsx",
+    "lint:fix": "eslint --fix . --ignore-path ./.eslintignore --ext ts --ext tsx --ext js --ext jsx",
+    "build": "bob build",
+    "prettier": "prettier . --ignore-path ./.gitignore",
+    "test": "echo 'No tests yet'",
+    "prepare": "bob build",
+    "demo": "yarn --cwd demo",
+    "bootstrap": "yarn demo && yarn"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "devDependencies": {
+    "@types/react-native": "0.66.1",
+    "@typescript-eslint/eslint-plugin": "4.20.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "eslint": "7.14.0",
+    "eslint-import-resolver-typescript": "2.5.0",
+    "eslint-plugin-import": "2.26.0",
+    "eslint-plugin-prettier": "3.3.1",
+    "eslint-plugin-simple-import-sort": "5.0.3",
+    "pod-install": "0.1.0",
+    "prettier": "2.2.1",
+    "react": "17.0.2",
+    "react-native": "0.66.1",
+    "react-native-builder-bob": "0.17.1",
+    "ts-node": "9.1.1",
+    "typescript": "4.5.2"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}
