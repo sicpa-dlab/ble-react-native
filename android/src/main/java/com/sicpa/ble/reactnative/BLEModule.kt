@@ -1,6 +1,7 @@
 package com.sicpa.ble.reactnative
 
 import android.Manifest
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
 import android.content.Context
@@ -36,6 +37,8 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     private var scanCallback: ScanCallback? = null
     private var advertiseCallback: AdvertiseCallback? = null
 
+    private val cachedScannedDevices = mutableMapOf<String, BluetoothDevice>()
+
     override fun getName() = MODULE_NAME
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -47,8 +50,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun advertise(bleId: String, promise: Promise) {
-        Log.d(MODULE_NAME, "advertise")
-
         if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED) {
             throw BLEException("Bluetooth scan permission is not granted")
         }
@@ -100,18 +101,12 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun scan(filterBleId: String, stopIfFound: Boolean, promise: Promise) {
-        Log.d(MODULE_NAME, "scan")
-
         if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             throw BLEException("Bluetooth scan permission is not granted")
         }
 
-        Log.d(MODULE_NAME, "permission")
-
         val newScanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
-                Log.d(MODULE_NAME, "got result")
-
                 result ?: return
 
                 // filter by bleId. It may be the device name or in manufacturer specific data
@@ -130,6 +125,8 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                     if (stopIfFound) {
                         stopScan()
                     }
+
+                    cachedScannedDevices[result.device.address] = result.device
                     promise.resolve(result.device.address)
                 }
             }
@@ -181,8 +178,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             return Result.success(true)
         } else {
             val manufacturerData = scanResult.scanRecord?.getManufacturerSpecificData(manufacturerId) ?: return Result.success(false)
-
-            Log.d(MODULE_NAME,"manufacturer " +  String(manufacturerData) + " filter " + filterBleId)
 
             return Result.success(String(manufacturerData) == filterBleId)
         }
