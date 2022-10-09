@@ -78,6 +78,8 @@ const requestPermissions = async () => {
 export default function App() {
 
   const [bleId, setBleId] = useState<string>("")
+  const [address, setAddress] = useState<string>("")
+  const [message, setMessage] = useState<string>("")
 
   const advertise = useCallback(async () => {
     await requestPermissions()
@@ -94,13 +96,28 @@ export default function App() {
     console.log(`BLEid is ${bleId}`)
     const result = await BLE.scan(bleId, true)
     console.log(`Found ble devices: ${result}`)
-  }, [bleId])
+    setAddress(result)
+  }, [bleId, setAddress])
+  
+  const connect = useCallback(async () => {
+    await requestPermissions()
+    await BLE.connect(address)
+  }, [address])
+
+  const sendMessage = useCallback(async () => {
+    await requestPermissions()
+    await BLE.sendMessage(message)
+  }, [message])
 
   return (
     <View style={styles.container}>
       <Button title={"Advertise"} onPress={advertise} />
       <TextInput value={bleId} onChangeText={setBleId} />
       <Button title={"Scan"} onPress={scan} />
+      <TextInput value={address} onChangeText={setAddress} />
+      <Button title={"Connect"} onPress={connect} />
+      <TextInput value={message} onChangeText={setMessage} />
+      <Button title={"Send"} onPress={sendMessage} />
       <Text>Please see logs for demo run results.</Text>
     </View>
   )

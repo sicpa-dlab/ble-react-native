@@ -17,13 +17,20 @@ export class BLE {
     await BLEModule.stopAdvertise()
   }
 
-  public static async scan(filterBleId: string, stopIfFound: boolean): Promise<[any]> {
-    console.log(`Starting scan: ${filterBleId}, ${stopIfFound}`)
+  public static async scan(filterBleId: string, stopIfFound: boolean): Promise<string> {
     return await BLEModule.scan(filterBleId, stopIfFound)
   }
 
   public static async stopScan() {
     await BLEModule.stopScan()
+  }
+
+  public static async connect(address: string) {
+    await BLEModule.connectToPeripheral(address)
+  }
+
+  public static async sendMessage(message: string) {
+    await BLEModule.sendMessage(message)
   }
 
 }
