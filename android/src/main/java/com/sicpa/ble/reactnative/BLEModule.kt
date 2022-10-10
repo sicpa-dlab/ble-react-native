@@ -10,6 +10,7 @@ import android.os.ParcelUuid
 import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import no.nordicsemi.android.ble.BleManager
@@ -25,6 +26,10 @@ private const val MODULE_NAME = "BLEModule"
 @ReactModule(name = MODULE_NAME)
 class BLEModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
+
+    companion object {
+        const val PAYLOAD_STRING_KEY = "payload"
+    }
 
     private val serviceUUID: UUID = UUID.fromString("6E33748B-D176-4D38-A962-8947ECEC8271")
     private val characteristicUUID = UUID.fromString("F026CBE5-A1DB-44FB-9E2F-E55FDB94B293")
@@ -45,6 +50,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     override fun getName() = MODULE_NAME
 
     private val scope = CoroutineScope(Dispatchers.Default)
+
+    override fun getConstants(): MutableMap<String, Any> =
+        mutableMapOf("PAYLOAD_STRING_KEY" to PAYLOAD_STRING_KEY)
 
     @ReactMethod
     fun generateBleId(promise: Promise) {
@@ -199,7 +207,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             }
 
             connectedPeripheralManager = ClientBleManager {
-                // TODO send event to react native
+                sendEvent(MessageReceived(it))
             }.also {
                 it.connect(device)
                     .done {
@@ -240,6 +248,28 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 scanResult.scanRecord?.getManufacturerSpecificData(manufacturerId) ?: return Result.success(false)
 
             return Result.success(String(manufacturerData) == filterBleId)
+        }
+    }
+
+    private fun sendEvent(event: BLEEvent) {
+        val context = reactApplicationContext ?: run {
+            Log.e(MODULE_NAME, "Error sending event to react native, context is missing")
+            return
+        }
+
+        val params = Arguments.createMap().apply {
+            when (event) {
+                is MessageReceived -> putString(PAYLOAD_STRING_KEY, event.payload)
+            }
+        }
+
+        try {
+            context
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit(event.type, params)
+            Log.d(MODULE_NAME, "Event sent to react native")
+        } catch (e: Exception) {
+            Log.e(MODULE_NAME, "Error sending event to react native. ${e.message}\n${e.stackTrace}")
         }
     }
 
@@ -366,7 +396,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
                     val message = String(bytes)
                     Log.d(MODULE_NAME, "Received data $message ${String(characteristic.value)}")
-                    // TODO send event to react native
+                    sendEvent(MessageReceived(message))
                 }
             }
 
