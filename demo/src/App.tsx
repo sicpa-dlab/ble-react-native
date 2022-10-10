@@ -1,3 +1,4 @@
+import { BLE } from "@sicpa-dlab/ble-react-native"
 import * as React from "react"
 import { useCallback, useEffect, useState } from "react"
 import {
@@ -10,7 +11,6 @@ import {
   PermissionsAndroid,
   TextInput,
 } from "react-native"
-import { BLE } from "@sicpa-dlab/ble-react-native"
 
 const styles = StyleSheet.create({
   container: {
