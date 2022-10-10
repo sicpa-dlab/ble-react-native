@@ -20,6 +20,8 @@ jobs:
         with:
           node-version: "16"
           cache: "yarn"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@sicpa-dlab"
 
       - name: install and link dependencies
         run: yarn install --no-lockfile
