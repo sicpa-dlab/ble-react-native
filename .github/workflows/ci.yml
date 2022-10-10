@@ -24,7 +24,7 @@ jobs:
       - name: install and link dependencies
         run: yarn install --no-lockfile
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GHR_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: check style
         run: yarn run style:check
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: github
     env:
-      NODE_AUTH_TOKEN: ${{ secrets.GHR_TOKEN }}
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
