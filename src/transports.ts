@@ -20,12 +20,14 @@ export class OutboundBleTransport implements OutboundTransport {
 
 export class InboundBleTransport implements InboundTransport {
 
-  start(agent: Agent): Promise<void> {
-    return Promise.resolve(undefined);
+  public async start(agent: Agent): Promise<void> {
+    BLE.addBleMessageListener((payload) => {
+      agent.receiveMessage(JSON.parse(payload))
+    })
   }
 
-  stop(): Promise<void> {
-    return Promise.resolve(undefined);
+  public async stop(): Promise<void> {
+    BLE.removeBleMessageListeners()
   }
 
 }
