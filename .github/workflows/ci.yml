@@ -22,7 +22,7 @@ jobs:
           cache: "yarn"
 
       - name: install and link dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --no-lockfile
 
       - name: check style
         run: yarn run style:check
@@ -46,7 +46,7 @@ jobs:
           cache: "yarn"
 
       - name: install and link dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --no-lockfile
 
       - run: yarn build
 
