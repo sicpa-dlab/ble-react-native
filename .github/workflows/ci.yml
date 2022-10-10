@@ -50,5 +50,5 @@ jobs:
 
       - run: yarn build
 
-      - run: npm config set //npm.pkg.github.com/:_authToken ${{ secrets.TOKEN }}
+      - run: npm config set //npm.pkg.github.com/:_authToken ${{ secrets.GITHUB_TOKEN }}
       - run: npm publish --access private
