@@ -20,13 +20,9 @@ jobs:
         with:
           node-version: "16"
           cache: "yarn"
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@sicpa-dlab"
 
       - name: install and link dependencies
-        run: yarn install --no-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn install --frozen-lockfile
 
       - name: check style
         run: yarn run style:check
@@ -42,8 +38,6 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: github
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -52,7 +46,7 @@ jobs:
           cache: "yarn"
 
       - name: install and link dependencies
-        run: yarn install --no-lockfile
+        run: yarn install --frozen-lockfile
 
       - run: yarn build
 
