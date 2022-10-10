@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import no.nordicsemi.android.ble.BleManager
 import no.nordicsemi.android.ble.BleServerManager
+import no.nordicsemi.android.ble.observer.ConnectionObserver
 import no.nordicsemi.android.ble.observer.ServerObserver
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -219,8 +220,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         val bytes = message.encodeToByteArray()
 
         if (connectedPeripheralManager?.isReady == true) {
+            Log.d(MODULE_NAME, "Sending data to peripheral")
             connectedPeripheralManager?.sendMessage(bytes)
         } else if (serverManager?.isClientConnected() == true) {
+            Log.d(MODULE_NAME, "Sending data to central")
             serverManager?.setCharacteristicValue(bytes)
         }
     }
@@ -249,6 +252,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 val service = gatt.getService(serviceUUID) ?: return false
                 writeCharacteristic = service.getCharacteristic(characteristicUUID)
                 Log.d(MODULE_NAME, "Characteristics discovered")
+                return true
+            }
+
+            override fun initialize() {
                 setNotificationCallback(writeCharacteristic).with { _, data ->
                     Log.d(MODULE_NAME, "Received a notification")
                     data.value?.let {
@@ -258,7 +265,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                     }
                 }
                 enableNotifications(writeCharacteristic).enqueue()
-                return true
             }
 
             override fun onServicesInvalidated() {
@@ -315,6 +321,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         override fun onDeviceConnectedToServer(device: BluetoothDevice) {
             serverConnection = ServerConnection().apply {
                 useServer(this@ServerBleManager)
+                connectionObserver = this
                 connect(device).enqueue()
             }
         }
@@ -327,19 +334,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         /*
          * Manages the state of an individual server connection (there can be many of these)
          */
-        inner class ServerConnection : BleManager(context) {
+        inner class ServerConnection : BleManager(context), ConnectionObserver {
 
             private var gattCallback: GattCallback? = null
-
-            init {
-                setWriteCallback(characteristic).with { _, data ->
-                    val bytes = data.value ?: return@with
-
-                    val message = String(bytes)
-                    Log.d(MODULE_NAME, "Received data $message")
-                    // TODO send event to react native
-                }
-            }
 
             fun sendNotificationForMyGattCharacteristic(value: ByteArray) {
                 sendNotification(characteristic, value).enqueue()
@@ -352,6 +349,31 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             override fun getGattCallback(): BleManagerGattCallback {
                 gattCallback = GattCallback()
                 return gattCallback!!
+            }
+
+            override fun onDeviceConnecting(device: BluetoothDevice) {
+            }
+
+            override fun onDeviceConnected(device: BluetoothDevice) {
+            }
+
+            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+            }
+
+            override fun onDeviceReady(device: BluetoothDevice) {
+                setWriteCallback(characteristic).with { _, data ->
+                    val bytes = data.value ?: return@with
+
+                    val message = String(bytes)
+                    Log.d(MODULE_NAME, "Received data $message ${String(characteristic.value)}")
+                    // TODO send event to react native
+                }
+            }
+
+            override fun onDeviceDisconnecting(device: BluetoothDevice) {
+            }
+
+            override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
             }
 
             fun writeCharacteristic(value: ByteArray) {
