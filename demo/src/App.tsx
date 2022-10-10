@@ -1,5 +1,5 @@
 import * as React from "react"
-import {useCallback, useEffect, useState} from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   StyleSheet,
   View,
@@ -8,9 +8,9 @@ import {
   NativeEventEmitter,
   NativeModules,
   PermissionsAndroid,
-  TextInput
+  TextInput,
 } from "react-native"
-import {BLE} from "@sicpa-dlab/ble-react-native";
+import { BLE } from "@sicpa-dlab/ble-react-native"
 
 const styles = StyleSheet.create({
   container: {
@@ -27,56 +27,40 @@ const styles = StyleSheet.create({
 
 const requestPermissions = async () => {
   try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      {
-        title: "Cool Photo App Camera Permission",
-        message:
-          "Cool Photo App needs access to your camera " +
-          "so you can take awesome pictures.",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
-      }
-    )
+    const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
+      title: "Cool Photo App Camera Permission",
+      message: "Cool Photo App needs access to your camera " + "so you can take awesome pictures.",
+      buttonNeutral: "Ask Me Later",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK",
+    })
 
-    await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-      {
-        title: "Cool Photo App Camera Permission",
-        message:
-          "Cool Photo App needs access to your camera " +
-          "so you can take awesome pictures.",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
-      }
-    )
+    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
+      title: "Cool Photo App Camera Permission",
+      message: "Cool Photo App needs access to your camera " + "so you can take awesome pictures.",
+      buttonNeutral: "Ask Me Later",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK",
+    })
 
-    await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
-      {
-        title: "Cool Photo App Camera Permission",
-        message:
-          "Cool Photo App needs access to your camera " +
-          "so you can take awesome pictures.",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
-      }
-    )
+    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE, {
+      title: "Cool Photo App Camera Permission",
+      message: "Cool Photo App needs access to your camera " + "so you can take awesome pictures.",
+      buttonNeutral: "Ask Me Later",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK",
+    })
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("You can use the camera");
+      console.log("You can use the camera")
     } else {
-      console.log("Camera permission denied");
+      console.log("Camera permission denied")
     }
   } catch (err) {
-    console.warn(err);
+    console.warn(err)
   }
-};
+}
 
 export default function App() {
-
   const [bleId, setBleId] = useState<string>("")
   const [address, setAddress] = useState<string>("")
   const [message, setMessage] = useState<string>("")
@@ -98,7 +82,7 @@ export default function App() {
     console.log(`Found ble devices: ${result}`)
     setAddress(result)
   }, [bleId, setAddress])
-  
+
   const connect = useCallback(async () => {
     await requestPermissions()
     await BLE.connect(address)

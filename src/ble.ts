@@ -4,8 +4,7 @@ import { NativeEventEmitter, NativeModules } from "react-native"
 const { BLEModule } = NativeModules
 
 export class BLE {
-
-  public static async generateBleId() : Promise<string> {
+  public static async generateBleId(): Promise<string> {
     return await BLEModule.generateBleId()
   }
 
@@ -32,5 +31,4 @@ export class BLE {
   public static async sendMessage(message: string) {
     await BLEModule.sendMessage(message)
   }
-
 }
