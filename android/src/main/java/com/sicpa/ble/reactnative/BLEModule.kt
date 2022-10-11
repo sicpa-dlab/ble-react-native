@@ -418,13 +418,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             }
 
             fun writeCharacteristic(value: ByteArray) {
-                writeCharacteristic(
-                    characteristic,
-                    value,
-                    BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
-                )
-                    .split()
-                    .enqueue()
                 sendNotificationForMyGattCharacteristic(value)
             }
 
