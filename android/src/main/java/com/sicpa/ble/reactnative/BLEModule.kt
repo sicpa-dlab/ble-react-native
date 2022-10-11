@@ -1,6 +1,7 @@
 package com.sicpa.ble.reactnative
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.Context
@@ -61,12 +62,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         promise.resolve(Random(System.currentTimeMillis()).nextInt(1000, 10000).toString())
     }
 
+    @SuppressLint("MissingPermission")
     @ReactMethod
     fun advertise(bleId: String, promise: Promise) {
-        if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED) {
-            throw BLEException("Bluetooth scan permission is not granted")
-        }
-
         val newAdvertiseCallback = object : AdvertiseCallback() {
             override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
                 super.onStartSuccess(settingsInEffect)
@@ -104,21 +102,15 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         )
     }
 
+    @SuppressLint("MissingPermission")
     @ReactMethod
     fun stopAdvertise() {
-        if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED) {
-            throw BLEException("Bluetooth scan permission is not granted")
-        }
-
         bluetoothManager.adapter.bluetoothLeAdvertiser.stopAdvertising(advertiseCallback)
     }
 
+    @SuppressLint("MissingPermission")
     @ReactMethod
     fun scan(filterBleId: String, stopIfFound: Boolean, promise: Promise) {
-        if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            throw BLEException("Bluetooth scan permission is not granted")
-        }
-
         val newScanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 result ?: return
@@ -175,13 +167,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         )
     }
 
+    @SuppressLint("MissingPermission")
     @ReactMethod
     fun stopScan() {
         scanCallback?.let {
-            if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                throw BLEException("Bluetooth scan permission is not granted")
-            }
-
             bluetoothManager.adapter.bluetoothLeScanner.stopScan(it)
         }
     }
@@ -238,11 +227,8 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun validateScanResult(filterBleId: String, scanResult: ScanResult): Result<Boolean> {
-        if (reactContext.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            return Result.failure(BLEException("Bluetooth connect permission is not granted"))
-        }
-
         if (scanResult.device?.name == filterBleId) {
             return Result.success(true)
         } else {
