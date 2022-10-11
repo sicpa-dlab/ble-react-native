@@ -307,7 +307,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             writeCharacteristic(
                 writeCharacteristic, message,
                 BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            ).enqueue()
+            ).split().enqueue()
         }
     }
 
@@ -369,7 +369,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             private var gattCallback: GattCallback? = null
 
             fun sendNotificationForMyGattCharacteristic(value: ByteArray) {
-                sendNotification(characteristic, value).enqueue()
+                sendNotification(characteristic, value).split().enqueue()
             }
 
             override fun log(priority: Int, message: String) {
@@ -411,7 +411,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                     characteristic,
                     value,
                     BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
-                ).enqueue()
+                )
+                    .split()
+                    .enqueue()
                 sendNotificationForMyGattCharacteristic(value)
             }
 
