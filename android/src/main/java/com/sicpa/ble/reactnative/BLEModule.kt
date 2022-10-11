@@ -15,10 +15,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import no.nordicsemi.android.ble.BleManager
 import no.nordicsemi.android.ble.BleServerManager
+import no.nordicsemi.android.ble.data.DataSplitter
 import no.nordicsemi.android.ble.observer.ConnectionObserver
 import no.nordicsemi.android.ble.observer.ServerObserver
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.math.min
 import kotlin.random.Random
 
 private const val MODULE_NAME = "BLEModule"
@@ -286,15 +288,20 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             }
 
             override fun initialize() {
-                setNotificationCallback(writeCharacteristic).with { _, data ->
+                setNotificationCallback(writeCharacteristic)
+                    .merge(MessageMerger())
+                    .with { _, data ->
                     Log.d(MODULE_NAME, "Received a notification")
                     data.value?.let {
-                        val message = String(it)
+                        val message = String(it).trim()
                         Log.d(MODULE_NAME, "Received data $message")
                         onMessageReceived(message)
                     }
                 }
-                enableNotifications(writeCharacteristic).enqueue()
+                beginAtomicRequestQueue()
+                    .add(requestMtu(128))
+                    .add(enableNotifications(writeCharacteristic))
+                    .enqueue()
             }
 
             override fun onServicesInvalidated() {
@@ -307,7 +314,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             writeCharacteristic(
                 writeCharacteristic, message,
                 BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            ).split().enqueue()
+            )
+                .split(MessageSplitter())
+                .enqueue()
         }
     }
 
@@ -369,7 +378,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             private var gattCallback: GattCallback? = null
 
             fun sendNotificationForMyGattCharacteristic(value: ByteArray) {
-                sendNotification(characteristic, value).split().enqueue()
+                sendNotification(characteristic, value).split(MessageSplitter()).enqueue()
             }
 
             override fun log(priority: Int, message: String) {
@@ -391,11 +400,13 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             }
 
             override fun onDeviceReady(device: BluetoothDevice) {
-                setWriteCallback(characteristic).with { _, data ->
+                setWriteCallback(characteristic)
+                    .merge(MessageMerger())
+                    .with { _, data ->
                     val bytes = data.value ?: return@with
 
-                    val message = String(bytes)
-                    Log.d(MODULE_NAME, "Received data $message ${String(characteristic.value)}")
+                    val message = String(bytes).trim()
+                    Log.d(MODULE_NAME, "Received data $message")
                     sendEvent(MessageReceived(message))
                 }
             }
