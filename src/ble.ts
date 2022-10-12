@@ -5,7 +5,7 @@ const { BLEModule } = NativeModules
 const { PAYLOAD_STRING_KEY } = BLEModule.getConstants()
 
 export enum BleEvent {
-  MessageReceived = "message-received",
+  MessageReceived = "ble-message-received",
 }
 
 export class BLE {
