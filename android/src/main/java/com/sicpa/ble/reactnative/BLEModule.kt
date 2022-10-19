@@ -229,6 +229,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         promise.resolve(null)
     }
 
+    @ReactMethod
+    fun disconnect(promise: Promise) {
+        connectedPeripheralManager?.disconnect()
+        connectedPeripheralManager = null
+        serverManager?.disconnect()
+        serverManager = null
+        cachedScannedDevices.clear()
+        promise.resolve(null)
+    }
+
     @SuppressLint("MissingPermission")
     private fun validateScanResult(filterBleId: String, scanResult: ScanResult): Result<Boolean> {
         if (scanResult.device?.name == filterBleId) {
@@ -346,6 +356,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         }
 
         override fun onDeviceConnectedToServer(device: BluetoothDevice) {
+            stopAdvertise()
             serverConnection = ServerConnection().apply {
                 useServer(this@ServerBleManager)
                 connectionObserver = this
@@ -355,6 +366,11 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
         override fun onDeviceDisconnectedFromServer(device: BluetoothDevice) {
             serverConnection?.close()
+            serverConnection = null
+        }
+
+        fun disconnect() {
+            serverConnection?.disconnect()
             serverConnection = null
         }
 
