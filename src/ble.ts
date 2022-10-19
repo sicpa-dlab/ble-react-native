@@ -49,6 +49,10 @@ export class BLE {
     await BLEModule.sendMessage(message)
   }
 
+  public static async disconnect() {
+    await BLEModule.disconnect()
+  }
+
   public static addBleMessageListener(listener: (payload: string) => void): EmitterSubscription {
     return this.getNativeEventEmitter().addListener(BleEvent.MessageReceived, (event) => {
       listener(event[PAYLOAD_STRING_KEY])
