@@ -225,6 +225,8 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             Log.d(MODULE_NAME, "Sending data to central")
             serverManager?.setCharacteristicValue(bytes)
         }
+
+        promise.resolve(null)
     }
 
     @SuppressLint("MissingPermission")
