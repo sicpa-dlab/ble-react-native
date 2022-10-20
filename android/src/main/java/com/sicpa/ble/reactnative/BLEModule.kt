@@ -105,7 +105,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     @SuppressLint("MissingPermission")
     @ReactMethod
     fun stopAdvertise() {
-        bluetoothManager.adapter.bluetoothLeAdvertiser.stopAdvertising(advertiseCallback)
+        advertiseCallback?.let {
+            bluetoothManager.adapter.bluetoothLeAdvertiser.stopAdvertising(advertiseCallback)
+        }
     }
 
     @SuppressLint("MissingPermission")
