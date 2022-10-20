@@ -231,12 +231,24 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun disconnect(promise: Promise) {
+        internalDisconnect()
+        promise.resolve(null)
+    }
+
+    @ReactMethod
+    fun finish(promise: Promise) {
+        internalDisconnect()
+        cachedScannedDevices.clear()
+        stopScan()
+        stopAdvertise()
+        promise.resolve(null)
+    }
+
+    private fun internalDisconnect() {
         connectedPeripheralManager?.disconnect()
         connectedPeripheralManager = null
         serverManager?.disconnect()
         serverManager = null
-        cachedScannedDevices.clear()
-        promise.resolve(null)
     }
 
     @SuppressLint("MissingPermission")
