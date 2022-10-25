@@ -50,6 +50,22 @@ const requestPermissions = async () => {
       buttonNegative: "Cancel",
       buttonPositive: "OK",
     })
+
+    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
+      title: "Cool Photo App Camera Permission",
+      message: "Cool Photo App needs access to your camera " + "so you can take awesome pictures.",
+      buttonNeutral: "Ask Me Later",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK",
+    })
+
+    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
+      title: "Cool Photo App Camera Permission",
+      message: "Cool Photo App needs access to your camera " + "so you can take awesome pictures.",
+      buttonNeutral: "Ask Me Later",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK",
+    })
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
       console.log("You can use the camera")
     } else {
@@ -93,6 +109,10 @@ export default function App() {
     await BLE.sendMessage(message)
   }, [message])
 
+  const disconnect = useCallback( async () => {
+    await BLE.finish()
+  }, [])
+
   return (
     <View style={styles.container}>
       <Button title={"Advertise"} onPress={advertise} />
@@ -103,6 +123,7 @@ export default function App() {
       <TextInput value={message} onChangeText={setMessage} />
       <Button title={"Send"} onPress={sendMessage} />
       <Text>Please see logs for demo run results.</Text>
+      <Button title={"Disconnect"} onPress={disconnect} />
     </View>
   )
 }
