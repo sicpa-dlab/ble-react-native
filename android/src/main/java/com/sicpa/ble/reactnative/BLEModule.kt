@@ -239,14 +239,14 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun disconnect(promise: Promise) {
-        runBlocking { internalDisconnect() }
+    fun disconnect(promise: Promise) = scope.launch {
+        internalDisconnect()
         promise.resolve(null)
     }
 
     @ReactMethod
-    fun finish(promise: Promise) {
-        runBlocking { internalDisconnect() }
+    fun finish(promise: Promise) = scope.launch {
+        internalDisconnect()
         cachedScannedDevices.clear()
         stopScan()
         stopAdvertise()
