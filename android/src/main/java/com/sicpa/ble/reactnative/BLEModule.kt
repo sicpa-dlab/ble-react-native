@@ -220,12 +220,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     fun sendMessage(message: String, promise: Promise) {
         val bytes = message.encodeToByteArray()
 
+        Log.d(MODULE_NAME, "Trying to send a message")
+
         if (connectedPeripheralManager?.isReady == true) {
             Log.d(MODULE_NAME, "Sending data to peripheral")
             connectedPeripheralManager?.sendMessage(bytes)
         } else if (serverManager?.isClientConnected() == true) {
             Log.d(MODULE_NAME, "Sending data to central")
             serverManager?.setCharacteristicValue(bytes)
+        } else {
+            Log.d(MODULE_NAME, "No one to send the message to.")
         }
 
         promise.resolve(null)
@@ -249,8 +253,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     private fun internalDisconnect() {
         connectedPeripheralManager?.disconnect()
         connectedPeripheralManager = null
-        serverManager?.disconnect()
-        serverManager = null
     }
 
     @SuppressLint("MissingPermission")
@@ -370,6 +372,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         }
 
         override fun onDeviceConnectedToServer(device: BluetoothDevice) {
+            Log.d(MODULE_NAME, "Device ${device.address} connected")
             stopAdvertise()
             serverConnection = ServerConnection().apply {
                 useServer(this@ServerBleManager)
@@ -379,13 +382,15 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         }
 
         override fun onDeviceDisconnectedFromServer(device: BluetoothDevice) {
+            Log.d(MODULE_NAME, "Device ${device.address} disconnected")
             serverConnection?.close()
             serverConnection = null
         }
 
         fun disconnect() {
             serverConnection?.disconnect()
-            serverConnection = null
+                ?.then { serverConnection = null }
+                ?.enqueue()
         }
 
         /*
