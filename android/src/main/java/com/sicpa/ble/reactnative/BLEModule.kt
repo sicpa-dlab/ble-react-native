@@ -284,6 +284,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         } catch (exception: Exception) {
             Log.e(MODULE_NAME, "Error disconnecting", exception)
         } finally {
+            connectedPeripheralManager?.close()
             connectedPeripheralManager?.connectionObserver = null
             connectedPeripheralManager = null
         }
@@ -327,6 +328,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         scope.launch {
             serverManager?.setServerObserver(null)
             serverManager?.disconnect()
+            serverManager?.close()
             serverManager = null
         }
     }
@@ -434,7 +436,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
         suspend fun disconnect() {
             serverConnection?.disconnect()
-                ?.then { serverConnection = null }
+                ?.then {
+                    serverConnection?.close()
+                    serverConnection = null
+                }
                 ?.suspend()
         }
 
