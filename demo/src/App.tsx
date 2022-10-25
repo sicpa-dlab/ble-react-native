@@ -109,7 +109,7 @@ export default function App() {
     await BLE.sendMessage(message)
   }, [message])
 
-  const disconnect = useCallback( async () => {
+  const disconnect = useCallback(async () => {
     await BLE.finish()
   }, [])
 
