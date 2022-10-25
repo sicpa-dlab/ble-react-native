@@ -14,9 +14,12 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import no.nordicsemi.android.ble.BleManager
 import no.nordicsemi.android.ble.BleServerManager
 import no.nordicsemi.android.ble.data.DataSplitter
+import no.nordicsemi.android.ble.ktx.suspend
 import no.nordicsemi.android.ble.observer.ConnectionObserver
 import no.nordicsemi.android.ble.observer.ServerObserver
 import java.nio.charset.StandardCharsets
@@ -178,43 +181,43 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun connectToPeripheral(address: String, promise: Promise) {
+    fun connectToPeripheral(address: String, promise: Promise) =
         synchronized(connectedPeripheralManager ?: Unit) {
-            val connectedDeviceManager = connectedPeripheralManager
-            if (connectedDeviceManager != null) {
-                // already connected to some device or trying to connect
+            runBlocking {
+                val connectedDeviceManager = connectedPeripheralManager
+                if (connectedDeviceManager != null) {
+                    // already connected to some device or trying to connect
 
-                if (connectedDeviceManager.bluetoothDevice?.address == address) {
-                    // already connected to the desired device
-                    promise.resolve(null)
-                }
-
-                connectedDeviceManager.disconnect()
-                connectedPeripheralManager = null
-            }
-
-            val device = cachedScannedDevices[address] ?: run {
-                Log.e(MODULE_NAME, "Cannot connect to device: not found")
-                promise.reject(BLEException("Requested device not found"))
-                return
-            }
-
-            connectedPeripheralManager = ClientBleManager {
-                sendEvent(MessageReceived(it))
-            }.also {
-                it.connect(device)
-                    .done {
-                        Log.d(MODULE_NAME, "Connected successfully to $address")
+                    if (connectedDeviceManager.bluetoothDevice?.address == address) {
+                        // already connected to the desired device
                         promise.resolve(null)
                     }
-                    .fail { _, status ->
-                        Log.e(MODULE_NAME, "Cannot connect to device, status: $status")
-                        promise.reject(BLEException("Cannot connect to device, status: $status"))
-                    }
-                    .enqueue()
+
+                    internalDisconnect()
+                }
+
+                val device = cachedScannedDevices[address] ?: run {
+                    Log.e(MODULE_NAME, "Cannot connect to device: not found")
+                    promise.reject(BLEException("Requested device not found"))
+                    return@runBlocking
+                }
+
+                connectedPeripheralManager = ClientBleManager {
+                    sendEvent(MessageReceived(it))
+                }.also {
+                    it.connect(device)
+                        .done {
+                            Log.d(MODULE_NAME, "Connected successfully to $address")
+                            promise.resolve(null)
+                        }
+                        .fail { _, status ->
+                            Log.e(MODULE_NAME, "Cannot connect to device, status: $status")
+                            promise.reject(BLEException("Cannot connect to device, status: $status"))
+                        }
+                        .enqueue()
+                }
             }
         }
-    }
 
     @ReactMethod
     fun sendMessage(message: String, promise: Promise) {
@@ -237,21 +240,23 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun disconnect(promise: Promise) {
-        internalDisconnect()
+        runBlocking { internalDisconnect() }
         promise.resolve(null)
     }
 
     @ReactMethod
     fun finish(promise: Promise) {
-        internalDisconnect()
+        runBlocking { internalDisconnect() }
         cachedScannedDevices.clear()
         stopScan()
         stopAdvertise()
         promise.resolve(null)
     }
 
-    private fun internalDisconnect() {
-        connectedPeripheralManager?.disconnect()
+    private suspend fun internalDisconnect() {
+        connectedPeripheralManager
+            ?.disconnect()
+            ?.suspend()
         connectedPeripheralManager = null
     }
 
@@ -305,13 +310,13 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 setNotificationCallback(writeCharacteristic)
                     .merge(MessageMerger())
                     .with { _, data ->
-                    Log.d(MODULE_NAME, "Received a notification")
-                    data.value?.let {
-                        val message = String(it).trim()
-                        Log.d(MODULE_NAME, "Received data $message")
-                        onMessageReceived(message)
+                        Log.d(MODULE_NAME, "Received a notification")
+                        data.value?.let {
+                            val message = String(it).trim()
+                            Log.d(MODULE_NAME, "Received data $message")
+                            onMessageReceived(message)
+                        }
                     }
-                }
                 beginAtomicRequestQueue()
                     .add(requestMtu(128))
                     .add(enableNotifications(writeCharacteristic))
@@ -426,12 +431,12 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 setWriteCallback(characteristic)
                     .merge(MessageMerger())
                     .with { _, data ->
-                    val bytes = data.value ?: return@with
+                        val bytes = data.value ?: return@with
 
-                    val message = String(bytes).trim()
-                    Log.d(MODULE_NAME, "Received data $message")
-                    sendEvent(MessageReceived(message))
-                }
+                        val message = String(bytes).trim()
+                        Log.d(MODULE_NAME, "Received data $message")
+                        sendEvent(MessageReceived(message))
+                    }
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
