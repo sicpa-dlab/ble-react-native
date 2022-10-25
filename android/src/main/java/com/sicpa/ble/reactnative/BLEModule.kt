@@ -254,9 +254,11 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     private suspend fun internalDisconnect() {
+        Log.d(MODULE_NAME, "Trying to disconnect from peripheral")
         connectedPeripheralManager
             ?.disconnect()
             ?.suspend()
+        Log.d(MODULE_NAME, "Successfully disconnected from peripheral")
         connectedPeripheralManager = null
     }
 
@@ -291,6 +293,14 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             Log.d(MODULE_NAME, "Event sent to react native")
         } catch (e: Exception) {
             Log.e(MODULE_NAME, "Error sending event to react native. ${e.message}\n${e.stackTrace}")
+        }
+    }
+
+    private fun onClientDisconnected() {
+        scope.launch {
+            serverManager?.setServerObserver(null)
+            serverManager?.disconnect()
+            serverManager = null
         }
     }
 
@@ -337,6 +347,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 .split(MessageSplitter())
                 .enqueue()
         }
+
     }
 
     inner class ServerBleManager(private val context: Context) : BleServerManager(reactContext), ServerObserver {
@@ -388,14 +399,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
         override fun onDeviceDisconnectedFromServer(device: BluetoothDevice) {
             Log.d(MODULE_NAME, "Device ${device.address} disconnected")
+            serverConnection?.connectionObserver = null
             serverConnection?.close()
             serverConnection = null
+            onClientDisconnected()
         }
 
-        fun disconnect() {
+        suspend fun disconnect() {
             serverConnection?.disconnect()
                 ?.then { serverConnection = null }
-                ?.enqueue()
+                ?.suspend()
         }
 
         /*
