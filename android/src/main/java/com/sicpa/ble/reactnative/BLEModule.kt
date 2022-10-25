@@ -296,6 +296,14 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
+    private fun onClientDisconnected() {
+        scope.launch {
+            serverManager?.setServerObserver(null)
+            serverManager?.disconnect()
+            serverManager = null
+        }
+    }
+
     inner class ClientBleManager(private val onMessageReceived: (String) -> Unit) : BleManager(reactContext) {
 
         private var writeCharacteristic: BluetoothGattCharacteristic? = null
@@ -339,6 +347,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 .split(MessageSplitter())
                 .enqueue()
         }
+
     }
 
     inner class ServerBleManager(private val context: Context) : BleServerManager(reactContext), ServerObserver {
@@ -390,14 +399,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
         override fun onDeviceDisconnectedFromServer(device: BluetoothDevice) {
             Log.d(MODULE_NAME, "Device ${device.address} disconnected")
+            serverConnection?.connectionObserver = null
             serverConnection?.close()
             serverConnection = null
+            onClientDisconnected()
         }
 
-        fun disconnect() {
+        suspend fun disconnect() {
             serverConnection?.disconnect()
                 ?.then { serverConnection = null }
-                ?.enqueue()
+                ?.suspend()
         }
 
         /*
