@@ -205,10 +205,31 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 connectedPeripheralManager = ClientBleManager {
                     sendEvent(MessageReceived(it))
                 }.also {
+                    it.connectionObserver = object : ConnectionObserver {
+                        override fun onDeviceConnecting(device: BluetoothDevice) {
+                        }
+
+                        override fun onDeviceConnected(device: BluetoothDevice) {
+                        }
+
+                        override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+                        }
+
+                        override fun onDeviceReady(device: BluetoothDevice) {
+                            Log.d(MODULE_NAME, "Device $address is ready")
+                            promise.resolve(null)
+                        }
+
+                        override fun onDeviceDisconnecting(device: BluetoothDevice) {
+                        }
+
+                        override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
+                        }
+                    }
                     it.connect(device)
                         .done {
                             Log.d(MODULE_NAME, "Connected successfully to $address")
-                            promise.resolve(null)
+//                            promise.resolve(null)
                         }
                         .fail { _, status ->
                             Log.e(MODULE_NAME, "Cannot connect to device, status: $status")
@@ -254,12 +275,18 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     private suspend fun internalDisconnect() {
-        Log.d(MODULE_NAME, "Trying to disconnect from peripheral")
-        connectedPeripheralManager
-            ?.disconnect()
-            ?.suspend()
-        Log.d(MODULE_NAME, "Successfully disconnected from peripheral")
-        connectedPeripheralManager = null
+        try {
+            Log.d(MODULE_NAME, "Trying to disconnect from peripheral")
+            connectedPeripheralManager
+                ?.disconnect()
+                ?.suspend()
+            Log.d(MODULE_NAME, "Successfully disconnected from peripheral")
+        } catch (exception: Exception) {
+            Log.e(MODULE_NAME, "Error disconnecting", exception)
+        } finally {
+            connectedPeripheralManager?.connectionObserver = null
+            connectedPeripheralManager = null
+        }
     }
 
     @SuppressLint("MissingPermission")
