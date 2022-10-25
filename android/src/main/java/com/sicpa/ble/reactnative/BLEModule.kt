@@ -254,9 +254,11 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     private suspend fun internalDisconnect() {
+        Log.d(MODULE_NAME, "Trying to disconnect from peripheral")
         connectedPeripheralManager
             ?.disconnect()
             ?.suspend()
+        Log.d(MODULE_NAME, "Successfully disconnected from peripheral")
         connectedPeripheralManager = null
     }
 
