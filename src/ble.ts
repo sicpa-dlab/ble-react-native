@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {EmitterSubscription, NativeEventEmitter, NativeModules} from "react-native"
+import { EmitterSubscription, NativeEventEmitter, NativeModules } from "react-native"
 
-const {BLEModule} = NativeModules
-const {PAYLOAD_STRING_KEY} = BLEModule.getConstants()
+const { BLEModule } = NativeModules
+const { PAYLOAD_STRING_KEY } = BLEModule.getConstants()
 
 export enum BleEvent {
   MessageReceived = "ble-message-received",
@@ -165,5 +165,4 @@ export class BLE {
   public static removeMessageSentListeners(): void {
     this.getNativeEventEmitter().removeAllListeners(BleEvent.MessageSent)
   }
-
 }
