@@ -203,35 +203,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 connectedPeripheralManager = ClientBleManager {
                     sendEvent(MessageReceived(it))
                 }.also {
-                    it.connectionObserver = object : ConnectionObserver {
-                        override fun onDeviceConnecting(device: BluetoothDevice) {
-                            Log.d(MODULE_NAME, "Connecting to device ${device.address}")
-                            sendEvent(ConnectingToServer)
-                        }
-
-                        override fun onDeviceConnected(device: BluetoothDevice) {
-                            Log.d(MODULE_NAME, "Connected to device $address ${device.address}")
-                            sendEvent(ConnectedToServer)
-                        }
-
-                        override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
-                            Log.d(MODULE_NAME, "Failed to connect to device ${device.address}, reason: $reason")
-                        }
-
-                        override fun onDeviceReady(device: BluetoothDevice) {
-                            Log.d(MODULE_NAME, "Device $${device.address} is ready")
-                        }
-
-                        override fun onDeviceDisconnecting(device: BluetoothDevice) {
-                            Log.d(MODULE_NAME, "Device ${device.address} disconnecting")
-                            sendEvent(DisconnectingFromServer)
-                        }
-
-                        override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
-                            Log.d(MODULE_NAME, "Device ${device.address} disconnected")
-                            sendEvent(DisconnectedFromServer)
-                        }
-                    }
                     it.connect(device)
                         .done {
                             Log.d(MODULE_NAME, "Connected successfully to $address")
@@ -283,18 +254,28 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     private suspend fun internalDisconnect() {
-        try {
-            Log.d(MODULE_NAME, "Trying to disconnect from peripheral")
-            connectedPeripheralManager
-                ?.disconnect()
-                ?.suspend()
-            Log.d(MODULE_NAME, "Successfully disconnected from peripheral")
-        } catch (exception: Exception) {
-            Log.e(MODULE_NAME, "Error disconnecting", exception)
-        } finally {
-            connectedPeripheralManager?.close()
-            connectedPeripheralManager?.connectionObserver = null
-            connectedPeripheralManager = null
+        connectedPeripheralManager?.let {
+            try {
+                Log.d(MODULE_NAME, "Trying to disconnect from peripheral")
+                it.disconnect().suspend()
+                Log.d(MODULE_NAME, "Successfully disconnected from peripheral")
+            } catch (exception: Exception) {
+                Log.e(MODULE_NAME, "Error disconnecting from peripheral", exception)
+            } finally {
+                cleanUpClient()
+            }
+        }
+
+        serverManager?.let {
+            try {
+                Log.d(MODULE_NAME, "Trying to disconnect clients")
+                it.disconnect()
+                Log.d(MODULE_NAME, "Successfully disconnected clients")
+            } catch (exception: Exception) {
+                Log.e(MODULE_NAME, "Error disconnecting clients")
+            } finally {
+                cleanUpServer()
+            }
         }
     }
 
@@ -336,17 +317,31 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
     private fun onClientDisconnected() {
         scope.launch {
-            serverManager?.setServerObserver(null)
-            serverManager?.disconnect()
-            serverManager?.close()
-            serverManager = null
+            cleanUpServer()
         }
     }
 
-    inner class ClientBleManager(private val onMessageReceived: (String) -> Unit) : BleManager(reactContext) {
+    private fun cleanUpServer() {
+        serverManager?.setServerObserver(null)
+        serverManager?.close()
+        serverManager = null
+    }
+
+    private fun cleanUpClient() {
+        connectedPeripheralManager?.close()
+        connectedPeripheralManager?.connectionObserver = null
+        connectedPeripheralManager = null
+    }
+
+    inner class ClientBleManager(private val onMessageReceived: (String) -> Unit) : BleManager(reactContext),
+        ConnectionObserver {
 
         private var writeCharacteristic: BluetoothGattCharacteristic? = null
         private var messageMerger = MessageMerger()
+
+        init {
+            connectionObserver = this
+        }
 
         override fun getGattCallback(): BleManagerGattCallback = object : BleManagerGattCallback() {
             override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
@@ -392,6 +387,34 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 .enqueue()
         }
 
+        override fun onDeviceConnecting(device: BluetoothDevice) {
+            Log.d(MODULE_NAME, "Connecting to device ${device.address}")
+            sendEvent(ConnectingToServer)
+        }
+
+        override fun onDeviceConnected(device: BluetoothDevice) {
+            Log.d(MODULE_NAME, "Connected to device ${device.address}")
+            sendEvent(ConnectedToServer)
+        }
+
+        override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+            Log.d(MODULE_NAME, "Failed to connect to device ${device.address}, reason: $reason")
+        }
+
+        override fun onDeviceReady(device: BluetoothDevice) {
+            Log.d(MODULE_NAME, "Device $${device.address} is ready")
+        }
+
+        override fun onDeviceDisconnecting(device: BluetoothDevice) {
+            Log.d(MODULE_NAME, "Device ${device.address} disconnecting")
+            sendEvent(DisconnectingFromServer)
+        }
+
+        override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
+            Log.d(MODULE_NAME, "Device ${device.address} disconnected")
+            sendEvent(DisconnectedFromServer)
+            cleanUpClient()
+        }
     }
 
     inner class ServerBleManager(private val context: Context) : BleServerManager(reactContext), ServerObserver {
@@ -434,6 +457,12 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         override fun onDeviceConnectedToServer(device: BluetoothDevice) {
             Log.d(MODULE_NAME, "Device ${device.address} connected")
             stopAdvertise()
+
+            serverConnection?.let {
+                // if we have an existing connection, close it
+                cleanUpServerConnection()
+            }
+
             serverConnection = ServerConnection().apply {
                 useServer(this@ServerBleManager)
                 connectionObserver = this
@@ -444,19 +473,22 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         override fun onDeviceDisconnectedFromServer(device: BluetoothDevice) {
             Log.d(MODULE_NAME, "Device ${device.address} disconnected")
             sendEvent(ClientDisconnected)
-            serverConnection?.connectionObserver = null
-            serverConnection?.close()
-            serverConnection = null
+            cleanUpServerConnection()
             onClientDisconnected()
         }
 
         suspend fun disconnect() {
             serverConnection?.disconnect()
                 ?.then {
-                    serverConnection?.close()
-                    serverConnection = null
+                    cleanUpServerConnection()
                 }
                 ?.suspend()
+        }
+
+        private fun cleanUpServerConnection() {
+            serverConnection?.connectionObserver = null
+            serverConnection?.close()
+            serverConnection = null
         }
 
         /*
