@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {EmitterSubscription, NativeEventEmitter, NativeModules} from "react-native"
+import { EmitterSubscription, NativeEventEmitter, NativeModules } from "react-native"
 
-const {BLEModule} = NativeModules
-const {PAYLOAD_STRING_KEY, BLE_EVENT_NAME} = BLEModule.getConstants()
+const { BLEModule } = NativeModules
+const { PAYLOAD_STRING_KEY, BLE_EVENT_NAME } = BLEModule.getConstants()
 
 export enum BleEvent {
   MessageReceived = "ble-message-received",
@@ -18,7 +18,6 @@ export enum BleEvent {
 }
 
 export class BLE {
-
   private static messageReceivedListener?: (payload: string) => void
   private static listeners = new Map<BleEvent, () => void>()
   private static nativeEmitterSubscription?: EmitterSubscription
@@ -139,7 +138,7 @@ export class BLE {
     BLE.listeners.delete(BleEvent.MessageSent)
   }
 
-  static start(): EmitterSubscription {
+  public static start(): EmitterSubscription {
     return new NativeEventEmitter(BLEModule).addListener(BLE_EVENT_NAME, (event) => {
       console.debug("Received an event")
       const type = event.type
@@ -154,8 +153,7 @@ export class BLE {
     })
   }
 
-  static stop(): void{
+  public static stop(): void {
     BLE.nativeEmitterSubscription?.remove()
   }
-
 }

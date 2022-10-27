@@ -8,10 +8,11 @@ import {
   Button,
   NativeModules,
   PermissionsAndroid,
-  TextInput, NativeEventEmitter,
+  TextInput,
+  NativeEventEmitter,
 } from "react-native"
 
-const {BLEModule} = NativeModules
+const { BLEModule } = NativeModules
 
 const styles = StyleSheet.create({
   container: {
