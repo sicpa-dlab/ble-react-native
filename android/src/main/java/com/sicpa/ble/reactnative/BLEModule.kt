@@ -1,12 +1,9 @@
 package com.sicpa.ble.reactnative
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.bluetooth.le.*
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Message
 import android.os.ParcelUuid
 import android.util.Log
 import com.facebook.react.bridge.*
@@ -18,13 +15,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import no.nordicsemi.android.ble.BleManager
 import no.nordicsemi.android.ble.BleServerManager
-import no.nordicsemi.android.ble.data.DataSplitter
 import no.nordicsemi.android.ble.ktx.suspend
 import no.nordicsemi.android.ble.observer.ConnectionObserver
 import no.nordicsemi.android.ble.observer.ServerObserver
 import java.nio.charset.StandardCharsets
 import java.util.*
-import kotlin.math.min
 import kotlin.random.Random
 
 private const val MODULE_NAME = "BLEModule"
@@ -58,7 +53,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     private val scope = CoroutineScope(Dispatchers.Default)
 
     override fun getConstants(): MutableMap<String, Any> =
-        mutableMapOf("PAYLOAD_STRING_KEY" to PAYLOAD_STRING_KEY)
+        mutableMapOf(
+            "PAYLOAD_STRING_KEY" to PAYLOAD_STRING_KEY,
+            "BLE-EVENT-NAME" to BLEEvent,
+        )
 
     @ReactMethod
     fun generateBleId(promise: Promise) {
@@ -207,29 +205,37 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 }.also {
                     it.connectionObserver = object : ConnectionObserver {
                         override fun onDeviceConnecting(device: BluetoothDevice) {
+                            Log.d(MODULE_NAME, "Connecting to device ${device.address}")
+                            sendEvent(ConnectingToServer)
                         }
 
                         override fun onDeviceConnected(device: BluetoothDevice) {
+                            Log.d(MODULE_NAME, "Connected to device $address ${device.address}")
+                            sendEvent(ConnectedToServer)
                         }
 
                         override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+                            Log.d(MODULE_NAME, "Failed to connect to device ${device.address}, reason: $reason")
                         }
 
                         override fun onDeviceReady(device: BluetoothDevice) {
-                            Log.d(MODULE_NAME, "Device $address is ready")
-                            promise.resolve(null)
+                            Log.d(MODULE_NAME, "Device $${device.address} is ready")
                         }
 
                         override fun onDeviceDisconnecting(device: BluetoothDevice) {
+                            Log.d(MODULE_NAME, "Device ${device.address} disconnecting")
+                            sendEvent(DisconnectingFromServer)
                         }
 
                         override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
+                            Log.d(MODULE_NAME, "Device ${device.address} disconnected")
+                            sendEvent(DisconnectedFromServer)
                         }
                     }
                     it.connect(device)
                         .done {
                             Log.d(MODULE_NAME, "Connected successfully to $address")
-//                            promise.resolve(null)
+                            promise.resolve(null)
                         }
                         .fail { _, status ->
                             Log.e(MODULE_NAME, "Cannot connect to device, status: $status")
@@ -248,9 +254,11 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
         if (connectedPeripheralManager?.isReady == true) {
             Log.d(MODULE_NAME, "Sending data to peripheral")
+            sendEvent(SendingMessage)
             connectedPeripheralManager?.sendMessage(bytes)
         } else if (serverManager?.isClientConnected() == true) {
             Log.d(MODULE_NAME, "Sending data to central")
+            sendEvent(SendingMessage)
             serverManager?.setCharacteristicValue(bytes)
         } else {
             Log.d(MODULE_NAME, "No one to send the message to.")
@@ -302,22 +310,24 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
-    private fun sendEvent(event: BLEEvent) {
+    private fun sendEvent(event: BLEEventType) {
         val context = reactApplicationContext ?: run {
             Log.e(MODULE_NAME, "Error sending event to react native, context is missing")
             return
         }
 
         val params = Arguments.createMap().apply {
+            putString("type", event.type)
             when (event) {
                 is MessageReceived -> putString(PAYLOAD_STRING_KEY, event.payload)
+                else -> {}
             }
         }
 
         try {
             context
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                .emit(event.type, params)
+                .emit(BLEEvent, params)
             Log.d(MODULE_NAME, "Event sent to react native")
         } catch (e: Exception) {
             Log.e(MODULE_NAME, "Error sending event to react native. ${e.message}\n${e.stackTrace}")
@@ -336,6 +346,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     inner class ClientBleManager(private val onMessageReceived: (String) -> Unit) : BleManager(reactContext) {
 
         private var writeCharacteristic: BluetoothGattCharacteristic? = null
+        private var messageMerger = MessageMerger()
 
         override fun getGattCallback(): BleManagerGattCallback = object : BleManagerGattCallback() {
             override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
@@ -347,7 +358,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
             override fun initialize() {
                 setNotificationCallback(writeCharacteristic)
-                    .merge(MessageMerger())
+                    .merge { output, lastPacket, index ->
+                        if (index == 0) sendEvent(StartedMessageReceive)
+                        return@merge messageMerger.merge(output, lastPacket, index)
+                    }
                     .with { _, data ->
                         Log.d(MODULE_NAME, "Received a notification")
                         data.value?.let {
@@ -374,6 +388,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             )
                 .split(MessageSplitter())
+                .then { sendEvent(MessageSent) }
                 .enqueue()
         }
 
@@ -428,6 +443,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
         override fun onDeviceDisconnectedFromServer(device: BluetoothDevice) {
             Log.d(MODULE_NAME, "Device ${device.address} disconnected")
+            sendEvent(ClientDisconnected)
             serverConnection?.connectionObserver = null
             serverConnection?.close()
             serverConnection = null
@@ -449,9 +465,13 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         inner class ServerConnection : BleManager(context), ConnectionObserver {
 
             private var gattCallback: GattCallback? = null
+            private var messageMerger = MessageMerger()
 
             fun sendNotificationForMyGattCharacteristic(value: ByteArray) {
-                sendNotification(characteristic, value).split(MessageSplitter()).enqueue()
+                sendNotification(characteristic, value)
+                    .split(MessageSplitter())
+                    .then { sendEvent(MessageSent) }
+                    .enqueue()
             }
 
             override fun log(priority: Int, message: String) {
@@ -473,8 +493,12 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             }
 
             override fun onDeviceReady(device: BluetoothDevice) {
+                sendEvent(ClientConnected)
                 setWriteCallback(characteristic)
-                    .merge(MessageMerger())
+                    .merge { output, lastPacket, index ->
+                        if (index == 0) sendEvent(StartedMessageReceive)
+                        return@merge messageMerger.merge(output, lastPacket, index)
+                    }
                     .with { _, data ->
                         val bytes = data.value ?: return@with
 
