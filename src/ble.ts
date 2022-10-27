@@ -165,4 +165,10 @@ export class BLE {
   public static removeMessageSentListeners(): void {
     this.getNativeEventEmitter().removeAllListeners(BleEvent.MessageSent)
   }
+
+  public static removeAllListeners(): void {
+    Object.values(BleEvent).forEach((type) => {
+      this.getNativeEventEmitter().removeAllListeners(type)
+    })
+  }
 }
