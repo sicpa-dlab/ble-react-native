@@ -327,7 +327,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         try {
             context
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                .emit(BLEEvent, params)
+                .emit(event.type, params)
             Log.d(MODULE_NAME, "Event sent to react native")
         } catch (e: Exception) {
             Log.e(MODULE_NAME, "Error sending event to react native. ${e.message}\n${e.stackTrace}")

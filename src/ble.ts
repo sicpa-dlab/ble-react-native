@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { EmitterSubscription, NativeEventEmitter, NativeModules } from "react-native"
+import {EmitterSubscription, NativeEventEmitter, NativeModules} from "react-native"
 
-const { BLEModule } = NativeModules
-const { PAYLOAD_STRING_KEY, BLE_EVENT_NAME } = BLEModule.getConstants()
+const {BLEModule} = NativeModules
+const {PAYLOAD_STRING_KEY} = BLEModule.getConstants()
 
 export enum BleEvent {
   MessageReceived = "ble-message-received",
@@ -18,9 +18,17 @@ export enum BleEvent {
 }
 
 export class BLE {
-  private static messageReceivedListener?: (payload: string) => void
-  private static listeners = new Map<BleEvent, () => void>()
-  private static nativeEmitterSubscription?: EmitterSubscription
+  private static nativeEventEmitter: NativeEventEmitter
+
+  private static getNativeEventEmitter(): NativeEventEmitter {
+    return (
+      this.nativeEventEmitter ??
+      (() => {
+        this.nativeEventEmitter = new NativeEventEmitter(BLEModule)
+        return this.nativeEventEmitter
+      })()
+    )
+  }
 
   public static async generateBleId(): Promise<string> {
     return await BLEModule.generateBleId()
@@ -58,102 +66,104 @@ export class BLE {
     await BLEModule.finish()
   }
 
-  public static addBleMessageListener(listener: (payload: string) => void): void {
-    BLE.messageReceivedListener = listener
-  }
-
-  public static removeBleMessageListeners(): void {
-    BLE.messageReceivedListener = undefined
-  }
-
-  public static addStartedMessageReceiveListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.StartedMessageReceive, listener)
-  }
-
-  public static removeStartedMessageReceiveListeners(): void {
-    BLE.listeners.delete(BleEvent.StartedMessageReceive)
-  }
-
-  public static addConnectingToServerListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.ConnectingToServer, listener)
-  }
-
-  public static removeConnectingToServerListeners(): void {
-    BLE.listeners.delete(BleEvent.ConnectingToServer)
-  }
-
-  public static addConnectedToServerListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.ConnectedToServer, listener)
-  }
-
-  public static removeConnectedToServerListeners(): void {
-    BLE.listeners.delete(BleEvent.ConnectedToServer)
-  }
-
-  public static addDisconnectingFromServerListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.DisconnectingFromServer, listener)
-  }
-
-  public static removeDisconnectingFromServerListeners(): void {
-    BLE.listeners.delete(BleEvent.DisconnectingFromServer)
-  }
-
-  public static addDisconnectedFromServerListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.DisconnectedFromServer, listener)
-  }
-
-  public static removeDisconnectedFromServerListeners(): void {
-    BLE.listeners.delete(BleEvent.DisconnectedFromServer)
-  }
-
-  public static addClientConnectedListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.ClientConnected, listener)
-  }
-
-  public static removeClientConnectedListeners(): void {
-    BLE.listeners.delete(BleEvent.ClientConnected)
-  }
-
-  public static addClientDisconnectedListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.ClientDisconnected, listener)
-  }
-
-  public static removeClientDisconnectedListeners(): void {
-    BLE.listeners.delete(BleEvent.ClientDisconnected)
-  }
-
-  public static addSendingMessageListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.SendingMessage, listener)
-  }
-
-  public static removeSendingMessageListeners(): void {
-    BLE.listeners.delete(BleEvent.SendingMessage)
-  }
-
-  public static addMessageSentListener(listener: () => void): void {
-    BLE.listeners.set(BleEvent.MessageSent, listener)
-  }
-
-  public static removeMessageSentListeners(): void {
-    BLE.listeners.delete(BleEvent.MessageSent)
-  }
-
-  public static start(): EmitterSubscription {
-    return new NativeEventEmitter(BLEModule).addListener(BLE_EVENT_NAME, (event) => {
-      console.debug("Received an event")
-      const type = event.type
-      switch (type) {
-        case BleEvent.MessageReceived:
-          BLE.messageReceivedListener?.(event.payload)
-          break
-        default:
-          BLE.listeners.get(type)?.()
-          break
-      }
+  public static addBleMessageListener(listener: (payload: string) => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.MessageReceived, (event) => {
+      listener(event[PAYLOAD_STRING_KEY])
     })
   }
 
-  public static stop(): void {
-    BLE.nativeEmitterSubscription?.remove()
+  public static removeBleMessageListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.MessageReceived)
   }
+
+  public static addStartedMessageReceiveListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.StartedMessageReceive, (event) => {
+      listener()
+    })
+  }
+
+  public static removeStartedMessageReceiveListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.StartedMessageReceive)
+  }
+
+  public static addConnectingToServerListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.ConnectingToServer, (event) => {
+      listener()
+    })
+  }
+
+  public static removeConnectingToServerListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.ConnectingToServer)
+  }
+
+  public static addConnectedToServerListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.ConnectedToServer, (event) => {
+      listener()
+    })
+  }
+
+  public static removeConnectedToServerListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.ConnectedToServer)
+  }
+
+  public static addDisconnectingFromServerListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.DisconnectingFromServer, (event) => {
+      listener()
+    })
+  }
+
+  public static removeDisconnectingFromServerListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.DisconnectingFromServer)
+  }
+
+  public static addDisconnectedFromServerListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.DisconnectedFromServer, (event) => {
+      listener()
+    })
+  }
+
+  public static removeDisconnectedFromServerListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.DisconnectedFromServer)
+  }
+
+  public static addClientConnectedListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.ClientConnected, (event) => {
+      listener()
+    })
+  }
+
+  public static removeClientConnectedListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.ClientConnected)
+  }
+
+  public static addClientDisconnectedListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.ClientDisconnected, (event) => {
+      listener()
+    })
+  }
+
+  public static removeClientDisconnectedListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.ClientDisconnected)
+  }
+
+  public static addSendingMessageListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.SendingMessage, (event) => {
+      listener()
+    })
+  }
+
+  public static removeSendingMessageListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.SendingMessage)
+  }
+
+  public static addMessageSentListener(listener: () => void): EmitterSubscription {
+    return this.getNativeEventEmitter().addListener(BleEvent.MessageSent, (event) => {
+      listener()
+    })
+  }
+
+  public static removeMessageSentListeners(): void {
+    this.getNativeEventEmitter().removeAllListeners(BleEvent.MessageSent)
+  }
+
 }
