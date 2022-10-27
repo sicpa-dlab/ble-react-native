@@ -6,11 +6,12 @@ import {
   View,
   Text,
   Button,
-  NativeEventEmitter,
   NativeModules,
   PermissionsAndroid,
-  TextInput,
+  TextInput, NativeEventEmitter,
 } from "react-native"
+
+const {BLEModule} = NativeModules
 
 const styles = StyleSheet.create({
   container: {
@@ -80,6 +81,57 @@ export default function App() {
   const [bleId, setBleId] = useState<string>("")
   const [address, setAddress] = useState<string>("")
   const [message, setMessage] = useState<string>("")
+
+  useEffect(() => {
+    BLE.start()
+    BLE.addBleMessageListener((payload) => {
+      console.warn(`MessageReceived event received: ${payload}`)
+    })
+    BLE.addStartedMessageReceiveListener(() => {
+      console.warn("StartedMessageReceive event received")
+    })
+    BLE.addConnectingToServerListener(() => {
+      console.warn("ConnectingToServer event received")
+    })
+    BLE.addConnectedToServerListener(() => {
+      console.warn("ConnectedToServer event received")
+    })
+    BLE.addDisconnectingFromServerListener(() => {
+      console.warn("DisconnectingFromServer event received")
+    })
+    BLE.addDisconnectedFromServerListener(() => {
+      console.warn("DisconnectedFromServer event received")
+    })
+    BLE.addClientConnectedListener(() => {
+      console.warn("ClientConnected event received")
+    })
+    BLE.addClientDisconnectedListener(() => {
+      console.warn("ClientDisconnected event received")
+    })
+    BLE.addSendingMessageListener(() => {
+      console.warn("SendingMessage event received")
+    })
+    BLE.addMessageSentListener(() => {
+      console.warn("MessageSent event received")
+    })
+
+    console.warn("Added listeners")
+
+    return () => {
+      console.warn("Removed listeners")
+      BLE.stop()
+      BLE.removeBleMessageListeners()
+      BLE.removeStartedMessageReceiveListeners()
+      BLE.removeConnectingToServerListeners()
+      BLE.removeConnectedToServerListeners()
+      BLE.removeDisconnectingFromServerListeners()
+      BLE.removeDisconnectedFromServerListeners()
+      BLE.removeClientConnectedListeners()
+      BLE.removeClientDisconnectedListeners()
+      BLE.removeSendingMessageListeners()
+      BLE.removeMessageSentListeners()
+    }
+  }, [])
 
   const advertise = useCallback(async () => {
     await requestPermissions()
