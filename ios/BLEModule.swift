@@ -20,6 +20,11 @@ class BLEModule: NSObject {
         bleClient.start()
     }
     
+    @objc(stop)
+    func stop() -> Void {
+        bleClient.stop()
+    }
+    
     @objc(scan:stopIfFound:resolve:reject:)
     func scan(_ filterBleId: String, stopIfFound: Bool, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) -> Void {
         Task.init(operation: {
@@ -36,25 +41,25 @@ class BLEModule: NSObject {
         })
     }
     
-    func stopScan(resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+    func stopScan(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
         Task.init(operation: {
             await bleClient.stopScan()
         })
     }
     
-    func connectToPeripheral(address: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+    func connectToPeripheral(_ address: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
         
     }
     
-    func sendMessage(message: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+    func sendMessage(_ message: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
         
     }
     
-    func disconnect(resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+    func disconnect(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
         
     }
 
-    func finish(resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+    func finish(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
         
     }
     

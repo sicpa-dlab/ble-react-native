@@ -26,6 +26,10 @@ class BLEClient : NSObject, CBCentralManagerDelegate {
         centralManager.state
     }
     
+    func stop() {
+        // nothing to clean up
+    }
+    
     func scan(filterBleId: String, stopIfFound: Bool) async -> Result<String, BLEError> {
         log(tag: tag, message: "Starting scan")
         
