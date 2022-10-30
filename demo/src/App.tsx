@@ -6,13 +6,9 @@ import {
   View,
   Text,
   Button,
-  NativeModules,
   PermissionsAndroid,
   TextInput,
-  NativeEventEmitter,
 } from "react-native"
-
-const { BLEModule } = NativeModules
 
 const styles = StyleSheet.create({
   container: {
@@ -84,7 +80,6 @@ export default function App() {
   const [message, setMessage] = useState<string>("")
 
   useEffect(() => {
-    BLE.start()
     BLE.addBleMessageListener((payload) => {
       console.warn(`MessageReceived event received: ${payload}`)
     })
@@ -120,7 +115,6 @@ export default function App() {
 
     return () => {
       console.warn("Removed listeners")
-      BLE.stop()
       BLE.removeBleMessageListeners()
       BLE.removeStartedMessageReceiveListeners()
       BLE.removeConnectingToServerListeners()
