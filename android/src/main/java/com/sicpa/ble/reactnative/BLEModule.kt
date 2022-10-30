@@ -59,6 +59,11 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         )
 
     @ReactMethod
+    fun start() {
+        // nothing to initialize
+    }
+
+    @ReactMethod
     fun generateBleId(promise: Promise) {
         promise.resolve(Random(System.currentTimeMillis()).nextInt(1000, 10000).toString())
     }

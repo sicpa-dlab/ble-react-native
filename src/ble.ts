@@ -30,6 +30,10 @@ export class BLE {
     )
   }
 
+  public static async start(): Promise<void> {
+    BLEModule.start()
+  }
+
   public static async generateBleId(): Promise<string> {
     return await BLEModule.generateBleId()
   }

@@ -80,6 +80,7 @@ export default function App() {
   const [message, setMessage] = useState<string>("")
 
   useEffect(() => {
+    BLE.start()
     BLE.addBleMessageListener((payload) => {
       console.warn(`MessageReceived event received: ${payload}`)
     })

@@ -1,5 +1,5 @@
 PODS:
-  - ble-react-native (0.3.3):
+  - ble-react-native (0.3.6):
     - React-Core
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
@@ -521,7 +521,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  ble-react-native: 7c76534be9b933f4c71518093078fc64dc96359d
+  ble-react-native: 3d8c6b9ff450b35d1a1949beee07ed1a4866d8e6
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662

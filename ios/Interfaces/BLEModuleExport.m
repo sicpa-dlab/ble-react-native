@@ -13,4 +13,6 @@
 
 RCT_EXTERN_METHOD(scan:(NSString *)filterBleId stopIfFound:(BOOL)stopIfFound resolve:(RCTPromiseResolveBlock *)resolve reject:(RCTPromiseRejectBlock *)reject)
 
+RCT_EXTERN_METHOD(start)
+
 @end

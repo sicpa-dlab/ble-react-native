@@ -418,6 +418,7 @@
 				DEVELOPMENT_TEAM = 6Y6RH3P7L2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = BleRnDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -444,6 +445,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6Y6RH3P7L2;
 				INFOPLIST_FILE = BleRnDemo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
