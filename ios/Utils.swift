@@ -16,6 +16,10 @@ func log(tag: String, message: String, error: Error? = nil) {
     }
 }
 
+func log(tag: String, error: Error) {
+    NSLog("%s: %s", tag, error.localizedDescription)
+}
+
 @available(iOS 13.0, *)
 public extension AsyncStream {
   /// Factory function that creates an AsyncStream and returns a tuple standing for its inputs and outputs.

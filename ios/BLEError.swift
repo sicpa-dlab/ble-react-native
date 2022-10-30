@@ -10,11 +10,16 @@ import Foundation
 
 struct BLEError : LocalizedError {
     let message: String
-    let cause: Error? = nil
+    let cause: Error?
+    
+    init(message: String, cause: Error? = nil) {
+        self.message = message
+        self.cause = cause
+    }
     
     var errorDescription: String? {
         get {
-            return message
+            return "\(message). \(cause?.localizedDescription ?? "")"
         }
     }
     

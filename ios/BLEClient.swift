@@ -11,15 +11,21 @@ import CoreBluetooth
 import Combine
 
 @available(iOS 13.0, *)
-class BLEClient : NSObject, CBCentralManagerDelegate {
+class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     
     private let tag = "BLEClient"
     
+    public var onMessageReceivedListener: ((String) -> Void)?
+    
     private lazy var centralManager = CBCentralManager(delegate: self, queue: nil)
     private var connectedPeripheral: CBPeripheral?
+    private var characteristic: CBCharacteristic?
     
     private var scanResults: AsyncStream<Result<Peripheral, BLEError>>?
     private var scanResultsContinuation: AsyncStream<Result<Peripheral, BLEError>>.Continuation?
+    
+    private var connectCompletion: ((Result<Any?, BLEError>) -> Void)?
+    
     
     func start() {
         // check the state to init bluetooth manager
@@ -74,8 +80,17 @@ class BLEClient : NSObject, CBCentralManagerDelegate {
         centralManager.stopScan()
     }
     
-    func connectToPeripheral(address: String) async {
+    func connectToPeripheral(identifier: String, completion: @escaping (Result<Any?, BLEError>) -> Void) -> Void {
+        log(tag: tag, message: "Trying to connect to \(identifier)")
+        guard let uuid = UUID(uuidString: identifier), let peripheral = centralManager.retrievePeripherals(withIdentifiers: [uuid]).first else {
+            log(tag: tag, message: "Cannot connect to \(identifier), not found.")
+            completion(.failure(BLEError(message: "Could not find peripheral with the specified identifier \(identifier)")))
+            return
+        }
         
+        connectCompletion = completion
+        connectedPeripheral = peripheral
+        centralManager.connect(peripheral)
     }
     
     func sendMessage(message: String) async {
@@ -115,11 +130,77 @@ class BLEClient : NSObject, CBCentralManagerDelegate {
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-//        print("Connected to peer \(peripheral.identifier)")
-//        connected = true
-//        centralManager?.stopScan()
-//        peripheral.delegate = self
-//        peripheral.discoverServices([service])
+        log(tag: tag, message: "Successfully connected to peer \(peripheral.identifier.uuidString), discovering services...")
+        peripheral.delegate = self
+        peripheral.discoverServices([SERVICE_ID])
+    }
+    
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        let bleError = BLEError(message: "Failed to connect to peripheral \(peripheral.identifier.uuidString)", cause: error)
+        connectedPeripheral = nil
+        log(tag: tag, error: bleError)
+        connectCompletion?(.failure(bleError))
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        if let error = error {
+            let bleError = BLEError(message: "Error discovering services of peripheral \(peripheral.identifier.uuidString)", cause: error)
+            log(tag: tag, error: bleError)
+            connectCompletion?(.failure(bleError))
+        } else {
+            log(tag: tag, message: "Successfully discovered services, looking for our service...")
+            
+            if let service = peripheral.services?.first(where: { $0.uuid == SERVICE_ID}) {
+                log(tag: tag, message: "Found our service, discovering characteristics...")
+                peripheral.discoverCharacteristics([CHARACTERISTIC_ID], for: service)
+            } else {
+                let bleError = BLEError(message: "Our service was not found, something went horribly wrong")
+                log(tag: tag, error: bleError)
+                connectCompletion?(.failure(bleError))
+            }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        if let error = error {
+            let bleError = BLEError(message: "Error discovering characteristics of peripheral \(peripheral.identifier.uuidString)", cause: error)
+            log(tag: tag, error: bleError)
+            connectCompletion?(.failure(bleError))
+        } else {
+            log(tag: tag, message: "Successfully discovered characteristics, looking for our characteristic...")
+            
+            if let characteristic = service.characteristics?.first(where: { $0.uuid == CHARACTERISTIC_ID }) {
+                log(tag: tag, message: "Found our characteristic, peripheral is ready!")
+                self.characteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+                connectCompletion?(.success(nil))
+            } else {
+                let bleError = BLEError(message: "Our characteristic was not found, something went horribly wrong")
+                log(tag: tag, error: bleError)
+                connectCompletion?(.failure(bleError))
+            }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        log(tag: tag, message: "Characteristic value updated")
+        
+        guard let data = characteristic.value else {
+            log(tag: tag, message: "Update was empty")
+            return
+        }
+        
+        guard let dataStr = String(data: data, encoding: String.Encoding.utf8) else {
+            log(tag: tag, message: "Could not convert received data into a string")
+            return
+        }
+        
+        if !dataStr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            log(tag: tag, message: "Received data: \(dataStr)")
+            onMessageReceivedListener?(dataStr)
+        } else {
+            log(tag: tag, message: "Update was empty")
+        }
     }
     
     private func assertBluetoothState() -> Result<Any?, BLEError> {
