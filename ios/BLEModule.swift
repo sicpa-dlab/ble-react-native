@@ -48,9 +48,8 @@ class BLEModule: RCTEventEmitter {
     
     @objc(stopScan:reject:)
     func stopScan(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        Task.init(operation: {
-            await bleClient.stopScan()
-        })
+        bleClient.stopScan()
+        resolve?(nil)
     }
     
     @objc(connectToPeripheral:resolve:reject:)
@@ -67,17 +66,26 @@ class BLEModule: RCTEventEmitter {
     
     @objc(sendMessage:resolve:reject:)
     func sendMessage(_ message: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        
+        bleClient.sendMessage(message: message) { result in
+            switch (result) {
+            case .success(_):
+                resolve?(nil)
+            case .failure(let error):
+                reject?(nil, nil, error)
+            }
+        }
     }
     
     @objc(disconnect:reject:)
     func disconnect(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        
+        bleClient.disconnect()
+        resolve?(nil)
     }
 
     @objc(finish:reject:)
     func finish(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        
+        bleClient.finish()
+        resolve?(nil)
     }
     
 }

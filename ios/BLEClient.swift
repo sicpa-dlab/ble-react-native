@@ -25,6 +25,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     private var scanResultsContinuation: AsyncStream<Result<Peripheral, BLEError>>.Continuation?
     
     private var connectCompletion: ((Result<Any?, BLEError>) -> Void)?
+    private var sendMessageCompletion: ((Result<Any?, BLEError>) -> Void)?
     
     
     func start() {
@@ -76,7 +77,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
     
-    func stopScan() async {
+    func stopScan() {
         centralManager.stopScan()
     }
     
@@ -93,16 +94,30 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         centralManager.connect(peripheral)
     }
     
-    func sendMessage(message: String) async {
+    func sendMessage(message: String, completion: @escaping (Result<Any?, BLEError>) -> Void) {
+        log(tag: tag, message: "Trying to send a message to peripheral")
         
+        if let characteristic = characteristic, let peripheral = connectedPeripheral {
+            peripheral.writeValue(Data(message.appending("\0").utf8), for: characteristic, type: .withResponse)
+            sendMessageCompletion = completion
+        } else {
+            let bleError = BLEError(message: "Error sending message, probably not connected to peripheral or characteristics not yet discovered")
+            log(tag: tag, error: bleError)
+            completion(.failure(bleError))
+        }
     }
     
-    func disconnect() async {
-        
+    func disconnect() {
+        if let peripheral = connectedPeripheral {
+            centralManager.cancelPeripheralConnection(peripheral)
+            connectedPeripheral = nil
+            log(tag: tag, message: "Disconnecting from \(peripheral.identifier)")
+        }
     }
 
-    func finish() async {
-        await disconnect()
+    func finish() {
+        disconnect()
+        stopScan()
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -200,6 +215,22 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             onMessageReceivedListener?(dataStr)
         } else {
             log(tag: tag, message: "Update was empty")
+        }
+    }
+    
+    /**
+     Called after #sendMessage
+     */
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if (self.characteristic?.uuid == characteristic.uuid) {
+            if let error = error {
+                let bleError = BLEError(message: "Error sending message", cause: error)
+                log(tag: tag, error: bleError)
+                sendMessageCompletion?(.failure(bleError))
+            } else {
+                log(tag: tag, message: "Successfully sent the message")
+                sendMessageCompletion?(.success(nil))
+            }
         }
     }
     
