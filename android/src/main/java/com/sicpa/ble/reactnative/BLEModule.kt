@@ -59,6 +59,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
         )
 
     @ReactMethod
+    fun start() {
+        // nothing to initialize
+    }
+
+    @ReactMethod
+    fun stop() {
+        finish(null)
+    }
+
+    @ReactMethod
     fun generateBleId(promise: Promise) {
         promise.resolve(Random(System.currentTimeMillis()).nextInt(1000, 10000).toString())
     }
@@ -245,12 +255,12 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun finish(promise: Promise) = scope.launch {
+    fun finish(promise: Promise?) = scope.launch {
         internalDisconnect()
         cachedScannedDevices.clear()
         stopScan()
         stopAdvertise()
-        promise.resolve(null)
+        promise?.resolve(null)
     }
 
     private suspend fun internalDisconnect() {

@@ -1,18 +1,7 @@
 import { BLE } from "@sicpa-dlab/ble-react-native"
 import * as React from "react"
 import { useCallback, useEffect, useState } from "react"
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  NativeModules,
-  PermissionsAndroid,
-  TextInput,
-  NativeEventEmitter,
-} from "react-native"
-
-const { BLEModule } = NativeModules
+import { StyleSheet, View, Text, Button, PermissionsAndroid, TextInput } from "react-native"
 
 const styles = StyleSheet.create({
   container: {
@@ -120,7 +109,6 @@ export default function App() {
 
     return () => {
       console.warn("Removed listeners")
-      BLE.stop()
       BLE.removeBleMessageListeners()
       BLE.removeStartedMessageReceiveListeners()
       BLE.removeConnectingToServerListeners()

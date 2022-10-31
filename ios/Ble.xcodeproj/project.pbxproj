@@ -7,8 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1DF11A434C75DA64358AAD16 /* Pods_Ble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C69F80D13195ABCADD766987 /* Pods_Ble.framework */; };
-		63AF17A528EDA9BC0052227E /* BLEModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 63AF17A428EDA9BC0052227E /* BLEModule.m */; };
+		6373FBEE290D6E5F00DB22BB /* BLEModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6373FBED290D6E5F00DB22BB /* BLEModule.swift */; };
+		6373FBF5290D714400DB22BB /* BLEModuleExport.m in Sources */ = {isa = PBXBuildFile; fileRef = 6373FBF4290D714400DB22BB /* BLEModuleExport.m */; };
+		639275CA290ED3AD00713511 /* BLEEventType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639275C9290ED3AD00713511 /* BLEEventType.swift */; };
+		63A673E4290E7EDB00D80A11 /* BLEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E3290E7EDB00D80A11 /* BLEClient.swift */; };
+		63A673E6290E7F0400D80A11 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E5290E7F0400D80A11 /* Constants.swift */; };
+		63A673E8290E83EB00D80A11 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E7290E83EB00D80A11 /* Utils.swift */; };
+		63A673EA290E869100D80A11 /* BLEError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E9290E869100D80A11 /* BLEError.swift */; };
+		63A673EC290EA10F00D80A11 /* Peripheral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673EB290EA10F00D80A11 /* Peripheral.swift */; };
+		C659A9D1C0E7590EE42D1E0D /* Pods_Ble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 961905D51A2A4DE1481DED6D /* Pods_Ble.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,12 +31,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		134814201AA4EA6300B7C361 /* libIpcclient.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libIpcclient.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		4523902D931F99DFFA85303A /* Pods-Ble.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ble.release.xcconfig"; path = "Target Support Files/Pods-Ble/Pods-Ble.release.xcconfig"; sourceTree = "<group>"; };
-		63AF17A328EDA9850052227E /* BLEModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BLEModule.h; sourceTree = "<group>"; };
-		63AF17A428EDA9BC0052227E /* BLEModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BLEModule.m; sourceTree = "<group>"; };
+		6373FBED290D6E5F00DB22BB /* BLEModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEModule.swift; sourceTree = "<group>"; };
+		6373FBF2290D6F0400DB22BB /* Ble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Ble-Bridging-Header.h"; sourceTree = "<group>"; };
+		6373FBF4290D714400DB22BB /* BLEModuleExport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BLEModuleExport.m; sourceTree = "<group>"; };
+		639275C9290ED3AD00713511 /* BLEEventType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEEventType.swift; sourceTree = "<group>"; };
+		63A673E3290E7EDB00D80A11 /* BLEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEClient.swift; sourceTree = "<group>"; };
+		63A673E5290E7F0400D80A11 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		63A673E7290E83EB00D80A11 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		63A673E9290E869100D80A11 /* BLEError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEError.swift; sourceTree = "<group>"; };
+		63A673EB290EA10F00D80A11 /* Peripheral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Peripheral.swift; sourceTree = "<group>"; };
 		95072FFFE14C564ADF148AF8 /* Pods-Ble.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ble.debug.xcconfig"; path = "Target Support Files/Pods-Ble/Pods-Ble.debug.xcconfig"; sourceTree = "<group>"; };
-		C69F80D13195ABCADD766987 /* Pods_Ble.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Ble.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		961905D51A2A4DE1481DED6D /* Pods_Ble.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Ble.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,21 +50,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1DF11A434C75DA64358AAD16 /* Pods_Ble.framework in Frameworks */,
+				C659A9D1C0E7590EE42D1E0D /* Pods_Ble.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		134814211AA4EA7D00B7C361 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				134814201AA4EA6300B7C361 /* libIpcclient.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		168B99215570662EC810F6DF /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -64,7 +69,7 @@
 		29988465CDA3BB8648FC9650 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				C69F80D13195ABCADD766987 /* Pods_Ble.framework */,
+				961905D51A2A4DE1481DED6D /* Pods_Ble.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -72,12 +77,26 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				63AF17A328EDA9850052227E /* BLEModule.h */,
-				63AF17A428EDA9BC0052227E /* BLEModule.m */,
-				134814211AA4EA7D00B7C361 /* Products */,
+				639275C9290ED3AD00713511 /* BLEEventType.swift */,
+				63A673EB290EA10F00D80A11 /* Peripheral.swift */,
+				63A673E9290E869100D80A11 /* BLEError.swift */,
+				63A673E7290E83EB00D80A11 /* Utils.swift */,
+				63A673E5290E7F0400D80A11 /* Constants.swift */,
+				63A673E3290E7EDB00D80A11 /* BLEClient.swift */,
+				6373FBF3290D70FF00DB22BB /* Interfaces */,
+				6373FBF2290D6F0400DB22BB /* Ble-Bridging-Header.h */,
+				6373FBED290D6E5F00DB22BB /* BLEModule.swift */,
 				168B99215570662EC810F6DF /* Pods */,
 				29988465CDA3BB8648FC9650 /* Frameworks */,
 			);
+			sourceTree = "<group>";
+		};
+		6373FBF3290D70FF00DB22BB /* Interfaces */ = {
+			isa = PBXGroup;
+			children = (
+				6373FBF4290D714400DB22BB /* BLEModuleExport.m */,
+			);
+			path = Interfaces;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -98,7 +117,6 @@
 			);
 			name = Ble;
 			productName = RCTDataManager;
-			productReference = 134814201AA4EA6300B7C361 /* libIpcclient.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -112,6 +130,7 @@
 				TargetAttributes = {
 					58B511DA1A9E6C8500147676 = {
 						CreatedOnToolsVersion = 6.1.1;
+						LastSwiftMigration = 1400;
 					};
 				};
 			};
@@ -163,7 +182,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63AF17A528EDA9BC0052227E /* BLEModule.m in Sources */,
+				63A673EA290E869100D80A11 /* BLEError.swift in Sources */,
+				63A673EC290EA10F00D80A11 /* Peripheral.swift in Sources */,
+				63A673E8290E83EB00D80A11 /* Utils.swift in Sources */,
+				6373FBEE290D6E5F00DB22BB /* BLEModule.swift in Sources */,
+				639275CA290ED3AD00713511 /* BLEEventType.swift in Sources */,
+				6373FBF5290D714400DB22BB /* BLEModuleExport.m in Sources */,
+				63A673E4290E7EDB00D80A11 /* BLEClient.swift in Sources */,
+				63A673E6290E7F0400D80A11 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,6 +227,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -216,7 +243,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -226,6 +253,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "Ble-Bridging-Header.h";
 			};
 			name = Debug;
 		};
@@ -260,6 +288,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -268,7 +297,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
 				LIBRARY_SEARCH_PATHS = (
 					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
@@ -277,6 +306,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "Ble-Bridging-Header.h";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -285,16 +315,21 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 95072FFFE14C564ADF148AF8 /* Pods-Ble.debug.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = Ipcclient;
+				PRODUCT_NAME = Ble;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Ble-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -302,16 +337,20 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4523902D931F99DFFA85303A /* Pods-Ble.release.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = Ipcclient;
+				PRODUCT_NAME = Ble;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Ble-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
