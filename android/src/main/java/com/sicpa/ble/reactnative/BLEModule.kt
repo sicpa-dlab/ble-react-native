@@ -527,16 +527,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             }
 
             override fun onDeviceConnecting(device: BluetoothDevice) {
-            }
-
-            override fun onDeviceConnected(device: BluetoothDevice) {
-            }
-
-            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
-            }
-
-            override fun onDeviceReady(device: BluetoothDevice) {
-                sendEvent(ClientConnected)
+                Log.d(MODULE_NAME, "On device ${device.address} connecting")
                 setWriteCallback(characteristic)
                     .merge { output, lastPacket, index ->
                         if (index == 0) sendEvent(StartedMessageReceive)
@@ -549,6 +540,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                         Log.d(MODULE_NAME, "Received data $message")
                         sendEvent(MessageReceived(message))
                     }
+            }
+
+            override fun onDeviceConnected(device: BluetoothDevice) {
+            }
+
+            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+            }
+
+            override fun onDeviceReady(device: BluetoothDevice) {
+                sendEvent(ClientConnected)
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
