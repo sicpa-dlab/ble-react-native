@@ -237,15 +237,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             Log.d(MODULE_NAME, "Sending data to peripheral")
             sendEvent(SendingMessage)
             connectedPeripheralManager?.sendMessage(bytes)
+            promise.resolve(null)
         } else if (serverManager?.isClientConnected() == true) {
             Log.d(MODULE_NAME, "Sending data to central")
             sendEvent(SendingMessage)
             serverManager?.setCharacteristicValue(bytes)
+            promise.resolve(null)
         } else {
             Log.d(MODULE_NAME, "No one to send the message to.")
+            promise.reject(BLEException("No one to send the message to"))
         }
-
-        promise.resolve(null)
     }
 
     @ReactMethod
@@ -319,9 +320,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             context
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
                 .emit(event.type, params)
-            Log.d(MODULE_NAME, "Event sent to react native")
+            Log.d(MODULE_NAME, "Event sent to react native: ${event.type}")
         } catch (e: Exception) {
-            Log.e(MODULE_NAME, "Error sending event to react native. ${e.message}\n${e.stackTrace}")
+            Log.e(MODULE_NAME, "Error sending event to react native. ${event.type}, ${e.message}\n${e.stackTrace}")
         }
     }
 
