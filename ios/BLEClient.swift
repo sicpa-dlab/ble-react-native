@@ -14,6 +14,7 @@ import Combine
 class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     
     private let tag = "BLEClient"
+    private let zeroCharacterSetWithWhitespaces = CharacterSet(charactersIn: "\0").union(.whitespacesAndNewlines)
     
     public var onMessageReceivedListener: ((String) -> Void)?
     
@@ -27,6 +28,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     private var connectCompletion: ((Result<Any?, BLEError>) -> Void)?
     private var sendMessageCompletion: ((Result<Any?, BLEError>) -> Void)?
     
+    private var inboundBuffer = ""    
     
     func start() {
         // check the state to init bluetooth manager
@@ -209,18 +211,24 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             return
         }
         
-        if !dataStr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if !dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces).isEmpty {
             log(tag: tag, message: "Received data: \(dataStr)")
-            if dataStr.trimmingCharacters(in: .whitespacesAndNewlines).starts(with: "ready") {
+            if dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces) == "ready" {
                 connectCompletion?(.success(nil))
+            } else if dataStr.contains("\0") {
+                log(tag: tag, message: "Received last update part, sending to RN")
+                let message = inboundBuffer + dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
+                inboundBuffer = ""
+                onMessageReceivedListener?(message)
             } else {
-                onMessageReceivedListener?(dataStr)
+                log(tag: tag, message: "Received partial update, buffering...")
+                inboundBuffer += dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
             }
         } else {
             log(tag: tag, message: "Update was empty")
         }
     }
-    
+        
     /**
      Called after #sendMessage
      */
