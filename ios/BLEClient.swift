@@ -188,7 +188,6 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 log(tag: tag, message: "Found our characteristic, peripheral is ready!")
                 self.characteristic = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
-                connectCompletion?(.success(nil))
             } else {
                 let bleError = BLEError(message: "Our characteristic was not found, something went horribly wrong")
                 log(tag: tag, error: bleError)
@@ -212,7 +211,11 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         
         if !dataStr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             log(tag: tag, message: "Received data: \(dataStr)")
-            onMessageReceivedListener?(dataStr)
+            if dataStr.trimmingCharacters(in: .whitespacesAndNewlines).starts(with: "ready") {
+                connectCompletion?(.success(nil))
+            } else {
+                onMessageReceivedListener?(dataStr)
+            }
         } else {
             log(tag: tag, message: "Update was empty")
         }

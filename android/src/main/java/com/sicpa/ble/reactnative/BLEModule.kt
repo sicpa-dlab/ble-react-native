@@ -211,12 +211,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 }
 
                 connectedPeripheralManager = ClientBleManager {
-                    sendEvent(MessageReceived(it))
+                    if (it.trim() == "ready") {
+                        Log.d(MODULE_NAME, "Peripheral ready")
+                        promise.resolve(null)
+                    } else {
+                        sendEvent(MessageReceived(it))
+                    }
                 }.also {
                     it.connect(device)
                         .done {
                             Log.d(MODULE_NAME, "Connected successfully to $address")
-                            promise.resolve(null)
                         }
                         .fail { _, status ->
                             Log.e(MODULE_NAME, "Cannot connect to device, status: $status")
@@ -377,7 +381,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                         }
                     }
                 beginAtomicRequestQueue()
-                    .add(requestMtu(128))
+                    .add(requestMtu(185))
                     .add(enableNotifications(writeCharacteristic))
                     .enqueue()
             }
@@ -511,6 +515,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
             private var messageMerger = MessageMerger()
 
             fun sendNotificationForMyGattCharacteristic(value: ByteArray) {
+                Log.d(MODULE_NAME, "Sending update notification")
                 sendNotification(characteristic, value)
                     .split(MessageSplitter())
                     .then { sendEvent(MessageSent) }
@@ -528,6 +533,16 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
             override fun onDeviceConnecting(device: BluetoothDevice) {
                 Log.d(MODULE_NAME, "On device ${device.address} connecting")
+            }
+
+            override fun onDeviceConnected(device: BluetoothDevice) {
+            }
+
+            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+            }
+
+            override fun onDeviceReady(device: BluetoothDevice) {
+                overrideMtu(185)
                 setWriteCallback(characteristic)
                     .merge { output, lastPacket, index ->
                         if (index == 0) sendEvent(StartedMessageReceive)
@@ -540,16 +555,8 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                         Log.d(MODULE_NAME, "Received data $message")
                         sendEvent(MessageReceived(message))
                     }
-            }
-
-            override fun onDeviceConnected(device: BluetoothDevice) {
-            }
-
-            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
-            }
-
-            override fun onDeviceReady(device: BluetoothDevice) {
                 sendEvent(ClientConnected)
+                sendNotificationForMyGattCharacteristic("ready".encodeToByteArray())
             }
 
             override fun onDeviceDisconnecting(device: BluetoothDevice) {
