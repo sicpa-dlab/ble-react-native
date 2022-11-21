@@ -13,6 +13,8 @@ import React
 @objc(BLEModule)
 class BLEModule: RCTEventEmitter {
     
+    private let PAYLOAD_STRING_KEY = "payload"
+    
     private let bleClient = BLEClient()
     
     @objc(supportedEvents)
@@ -20,12 +22,16 @@ class BLEModule: RCTEventEmitter {
         return BLEEventType.allCases.map { $0.rawValue }
     }
     
+    @objc(constantsToExport)
+    override func constantsToExport() -> [AnyHashable : Any]! {
+        return ["PAYLOAD_STRING_KEY": PAYLOAD_STRING_KEY]
+    }
+    
     @objc(start)
     func start() -> Void {
         bleClient.start()
         bleClient.onMessageReceivedListener = { [weak self] value in
-            
-            self?.sendEvent(withName: BLEEventType.MessageReceived.rawValue, body: ["payload": value])
+            self?.sendEvent(withName: BLEEventType.MessageReceived.rawValue, body: [self?.PAYLOAD_STRING_KEY: value])
         }
     }
     
