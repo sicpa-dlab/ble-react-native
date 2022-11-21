@@ -211,9 +211,12 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 }
 
                 connectedPeripheralManager = ClientBleManager {
+                    Log.d(MODULE_NAME, "shit received $it")
                     if (it.trim() == "ready") {
-                        Log.d(MODULE_NAME, "Peripheral ready")
-                        promise.resolve(null)
+                        Log.d(MODULE_NAME, "Peripheral ready message received")
+                        // android client is not ready to receive messages when the peripheral is ready so this code is probably not going to be called
+                        // so ignoring the message and just doing nothing
+                        // "ready" message from the peripheral is needed when an ios device is the client
                     } else {
                         sendEvent(MessageReceived(it))
                     }
@@ -221,6 +224,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                     it.connect(device)
                         .done {
                             Log.d(MODULE_NAME, "Connected successfully to $address")
+                            promise.resolve(null)
                         }
                         .fail { _, status ->
                             Log.e(MODULE_NAME, "Cannot connect to device, status: $status")
