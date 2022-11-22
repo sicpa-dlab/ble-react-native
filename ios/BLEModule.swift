@@ -27,6 +27,24 @@ class BLEModule: RCTEventEmitter {
         return ["PAYLOAD_STRING_KEY": PAYLOAD_STRING_KEY]
     }
     
+    @objc(generateBleId:reject:)
+    func generateBleId(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) -> Void {
+        // TODO: implement this functionality
+        resolve?(nil)
+    }
+    
+    @objc(advertise:resolve:reject:)
+    func advertise(_ bleId: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+        // TODO: implement this functionality
+        resolve?(nil)
+    }
+    
+    @objc(stopAdvertise:reject:)
+    func stopAdvertise(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
+        // TODO: implement this functionality
+        resolve?(nil)
+    }
+    
     @objc(start)
     func start() -> Void {
         bleClient.start()

@@ -1,6 +1,6 @@
 {
   "name": "@sicpa-dlab/ble-react-native",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "React Native wrapper for Bluetooth Low Energy",
   "main": "lib/module/index.js",
   "module": "lib/module/index.js",
