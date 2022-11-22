@@ -27,4 +27,10 @@ RCT_EXTERN_METHOD(disconnect:(RCTPromiseResolveBlock *)resolve reject:(RCTPromis
 
 RCT_EXTERN_METHOD(finish:(RCTPromiseResolveBlock *)resolve reject:(RCTPromiseRejectBlock *)reject)
 
+RCT_EXTERN_METHOD(generateBleId:(RCTPromiseResolveBlock *)resolve reject:(RCTPromiseRejectBlock *)reject)
+
+RCT_EXTERN_METHOD(advertise:(NSString *)bleId resolve:(RCTPromiseResolveBlock *)resolve reject:(RCTPromiseRejectBlock *)reject)
+
+RCT_EXTERN_METHOD(stopAdvertise:(RCTPromiseResolveBlock *)resolve reject:(RCTPromiseRejectBlock *)reject)
+
 @end
