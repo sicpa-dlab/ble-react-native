@@ -11,7 +11,7 @@
 		6338BC482934F981003286FE /* MessageSplitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6338BC472934F981003286FE /* MessageSplitter.swift */; };
 		6373FBEE290D6E5F00DB22BB /* BLEModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6373FBED290D6E5F00DB22BB /* BLEModule.swift */; };
 		6373FBF5290D714400DB22BB /* BLEModuleExport.m in Sources */ = {isa = PBXBuildFile; fileRef = 6373FBF4290D714400DB22BB /* BLEModuleExport.m */; };
-		639275CA290ED3AD00713511 /* BLEEventType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639275C9290ED3AD00713511 /* BLEEventType.swift */; };
+		639275CA290ED3AD00713511 /* BLEEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639275C9290ED3AD00713511 /* BLEEvent.swift */; };
 		63A673E4290E7EDB00D80A11 /* BLEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E3290E7EDB00D80A11 /* BLEClient.swift */; };
 		63A673E6290E7F0400D80A11 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E5290E7F0400D80A11 /* Constants.swift */; };
 		63A673E8290E83EB00D80A11 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A673E7290E83EB00D80A11 /* Utils.swift */; };
@@ -39,7 +39,7 @@
 		6373FBED290D6E5F00DB22BB /* BLEModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEModule.swift; sourceTree = "<group>"; };
 		6373FBF2290D6F0400DB22BB /* Ble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Ble-Bridging-Header.h"; sourceTree = "<group>"; };
 		6373FBF4290D714400DB22BB /* BLEModuleExport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BLEModuleExport.m; sourceTree = "<group>"; };
-		639275C9290ED3AD00713511 /* BLEEventType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEEventType.swift; sourceTree = "<group>"; };
+		639275C9290ED3AD00713511 /* BLEEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEEvent.swift; sourceTree = "<group>"; };
 		63A673E3290E7EDB00D80A11 /* BLEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEClient.swift; sourceTree = "<group>"; };
 		63A673E5290E7F0400D80A11 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		63A673E7290E83EB00D80A11 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
@@ -83,7 +83,7 @@
 			children = (
 				6338BC472934F981003286FE /* MessageSplitter.swift */,
 				63048A552934165300EC7BF5 /* BLEServer.swift */,
-				639275C9290ED3AD00713511 /* BLEEventType.swift */,
+				639275C9290ED3AD00713511 /* BLEEvent.swift */,
 				63A673EB290EA10F00D80A11 /* Peripheral.swift */,
 				63A673E9290E869100D80A11 /* BLEError.swift */,
 				63A673E7290E83EB00D80A11 /* Utils.swift */,
@@ -192,7 +192,7 @@
 				63A673EC290EA10F00D80A11 /* Peripheral.swift in Sources */,
 				63A673E8290E83EB00D80A11 /* Utils.swift in Sources */,
 				6373FBEE290D6E5F00DB22BB /* BLEModule.swift in Sources */,
-				639275CA290ED3AD00713511 /* BLEEventType.swift in Sources */,
+				639275CA290ED3AD00713511 /* BLEEvent.swift in Sources */,
 				6373FBF5290D714400DB22BB /* BLEModuleExport.m in Sources */,
 				6338BC482934F981003286FE /* MessageSplitter.swift in Sources */,
 				63A673E4290E7EDB00D80A11 /* BLEClient.swift in Sources */,

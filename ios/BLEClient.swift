@@ -16,7 +16,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     private let tag = "BLEClient"
     private let zeroCharacterSetWithWhitespaces = CharacterSet(charactersIn: "\0").union(.whitespacesAndNewlines)
     
-    public var onMessageReceivedListener: ((String) -> Void)?
+    public var onEventFired: ((BLEEvent) -> Void)?
     
     private lazy var centralManager = CBCentralManager(delegate: self, queue: nil)
     private var connectedPeripheral: CBPeripheral?
@@ -99,6 +99,8 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         
         connectCompletion = completion
         connectedPeripheral = peripheral
+        
+        onEventFired?(.init(type: .connectingToServer))
         centralManager.connect(peripheral)
     }
     
@@ -106,6 +108,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         log(tag: tag, message: "Trying to send a message to peripheral")
         
         if let characteristic = characteristic, let peripheral = connectedPeripheral {
+            onEventFired?(.init(type: .sendingMessage))
             peripheral.writeValue(Data(message.appending("\0").utf8), for: characteristic, type: .withResponse)
             sendMessageCompletion = completion
         } else {
@@ -117,9 +120,11 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     
     func disconnect() {
         if let peripheral = connectedPeripheral {
+            onEventFired?(.init(type: .disconnectingFromServer))
             centralManager.cancelPeripheralConnection(peripheral)
             connectedPeripheral = nil
             characteristic = nil
+            onEventFired?(.init(type: .disconnectedFromServer))
             log(tag: tag, message: "Disconnecting from \(peripheral.identifier)")
         }
     }
@@ -228,13 +233,19 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             if dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces) == "ready" {
                 connectCompletion?(.success(nil))
                 connectCompletion = nil
+                onEventFired?(.init(type: .connectedToServer))
             } else if dataStr.contains("\0") {
                 log(tag: tag, message: "Received last update part, sending to RN")
                 let message = inboundBuffer + dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
                 inboundBuffer = ""
-                onMessageReceivedListener?(message)
+                onEventFired?(MessageReceivedEvent(message: message))
             } else {
                 log(tag: tag, message: "Received partial update, buffering...")
+                
+                if inboundBuffer.isEmpty {
+                    onEventFired?(.init(type: .startedMessageReceive))
+                }
+                
                 inboundBuffer += dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
             }
         } else {
@@ -253,6 +264,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 sendMessageCompletion?(.failure(bleError))
             } else {
                 log(tag: tag, message: "Successfully sent the message")
+                onEventFired?(.init(type: .messageSent))
                 sendMessageCompletion?(.success(nil))
             }
         }

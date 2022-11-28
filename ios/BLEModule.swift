@@ -62,15 +62,20 @@ class BLEModule: RCTEventEmitter {
     
     @objc(start)
     func start() -> Void {
-        let onMesseageReceived = { [weak self] (value: String) -> Void in
-            self?.sendEvent(withName: BLEEventType.MessageReceived.rawValue, body: [self?.PAYLOAD_STRING_KEY: value])
+        let onEventFired = { [unowned self] (event: BLEEvent) -> Void in
+            var body: [String:Any] = [:]
+            if let messageReceivedEvent = event as? MessageReceivedEvent {
+                body[PAYLOAD_STRING_KEY] = messageReceivedEvent.message
+            }
+            
+            sendEvent(withName: event.type.rawValue, body: body)
         }
         
         bleClient.start()
-        bleClient.onMessageReceivedListener = onMesseageReceived
+        bleClient.onEventFired = onEventFired
         
         bleServer.start()
-        bleServer.onMessageReceivedListener = onMesseageReceived
+        bleServer.onEventFired = onEventFired
     }
     
     @objc(stop)

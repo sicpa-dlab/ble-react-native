@@ -12,10 +12,10 @@ import CoreBluetooth
 @available(iOS 13.0, *)
 class BLEServer: NSObject, CBPeripheralManagerDelegate {
     
-    private let tag = "BLEServer"
+    private static let tag = "BLEServer"
     private let zeroCharacterSetWithWhitespaces = CharacterSet(charactersIn: "\0").union(.whitespacesAndNewlines)
     
-    public var onMessageReceivedListener: ((String) -> Void)?
+    public var onEventFired: ((BLEEvent) -> Void)?
     
     private lazy var peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
     private var characteristic: CBMutableCharacteristic?
@@ -50,7 +50,7 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
             addServices()
         }
         
-        log(tag: tag, message: "Starting BLE advertise")
+        log(tag: BLEServer.tag, message: "Starting BLE advertise")
         peripheralManager.startAdvertising([CBAdvertisementDataLocalNameKey : bleId, CBAdvertisementDataServiceUUIDsKey: [SERVICE_ID]])
     }
     
@@ -59,53 +59,64 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
     }
     
     func sendMessage(message: String, completion: @escaping (Result<Any?, BLEError>) -> Void) {
-        log(tag: tag, message: "Trying to send a message to central")
+        log(tag: BLEServer.tag, message: "Trying to send a message to central")
         
         guard let characteristic = characteristic else {
             let message = "Trying to send a message to central, but the server is not ready"
-            log(tag: tag, message: message)
+            log(tag: BLEServer.tag, message: message)
             completion(.failure(BLEError(message: message)))
             return
         }
+        
+        onEventFired?(.init(type: .sendingMessage))
         
         let chunks = splitMessage(data: Data(message.utf8), maxChunkLength: 180)
         
         for i in chunks.indices {
             let result = peripheralManager.updateValue(chunks[i], for: characteristic, onSubscribedCentrals: nil)
             if !result {
-                log(tag: tag, message: "Cannot send the update chunk, the internal queue is full, adding to our own queue")
+                log(tag: BLEServer.tag, message: "Cannot send the update chunk, the internal queue is full, adding to our own queue")
                 outboundQueue.append(contentsOf: chunks.dropFirst(i))
                 break
             }
         }
         
+        if outboundQueue.isEmpty {
+            onEventFired?(.init(type: .messageSent))
+        }
     }
 
     func finish() -> Void {
         stopAdvertise()
+        onClientDisconnected()
+    }
+    
+    private func onClientDisconnected() {
+        inboundBuffer = ""
+        outboundQueue.removeAll()
     }
     
     func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         switch peripheral.state {
         case .unknown:
-            log(tag: tag, message: "Bluetooth Device is UNKNOWN")
+            log(tag: BLEServer.tag, message: "Bluetooth Device is UNKNOWN")
         case .unsupported:
-            log(tag: tag, message: "Bluetooth Device is UNSUPPORTED")
+            log(tag: BLEServer.tag, message: "Bluetooth Device is UNSUPPORTED")
         case .unauthorized:
-            log(tag: tag, message: "Bluetooth Device is UNAUTHORIZED")
+            log(tag: BLEServer.tag, message: "Bluetooth Device is UNAUTHORIZED")
         case .resetting:
-            log(tag: tag, message: "Bluetooth Device is RESETTING")
+            log(tag: BLEServer.tag, message: "Bluetooth Device is RESETTING")
         case .poweredOff:
-            log(tag: tag, message: "Bluetooth Device is POWERED OFF")
+            log(tag: BLEServer.tag, message: "Bluetooth Device is POWERED OFF")
         case .poweredOn:
-            log(tag: tag, message: "Bluetooth Device is POWERED ON")
+            log(tag: BLEServer.tag, message: "Bluetooth Device is POWERED ON")
         @unknown default:
-            log(tag: tag, message: "Unknown State")
+            log(tag: BLEServer.tag, message: "Unknown State")
         }
     }
     
     private func addServices() {
-        log(tag: tag, message: "Adding services to our BLE peripheral")
+        log(tag: BLEServer.tag, message: "Adding services to our BLE peripheral")
         
         let writableCharacteristic = CBMutableCharacteristic(type: CHARACTERISTIC_ID, properties: [.notify, .write, .read], value: nil, permissions: [.readable, .writeable])
         characteristic = writableCharacteristic
@@ -116,22 +127,26 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
     
     func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
         if let error = error {
-            log(tag: tag, message: "Could not start advertising", error: error)
+            log(tag: BLEServer.tag, message: "Could not start advertising", error: error)
             advertiseCompletion?(.failure(BLEError(message: "Could not start advertising", cause: error)))
             advertiseCompletion = nil
         } else {
-            log(tag: tag, message: "Successfully started advertising")
+            log(tag: BLEServer.tag, message: "Successfully started advertising")
             advertiseCompletion?(.success(nil))
             advertiseCompletion = nil
         }
     }
     
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
-        log(tag: tag, message: "Received write requests")
+        log(tag: BLEServer.tag, message: "Received write requests")
         
         if requests.isEmpty {
-            log(tag: tag, message: "Write requests list is empty")
+            log(tag: BLEServer.tag, message: "Write requests list is empty")
             return
+        }
+        
+        if inboundBuffer.isEmpty {
+            onEventFired?(.init(type: .startedMessageReceive))
         }
         
         requests.forEach { request in
@@ -141,9 +156,9 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
     
     func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
         // peripheral is ready to send updates again, taking from the queue
-        log(tag: tag, message: "Peripheral is ready to send updates again")
+        log(tag: BLEServer.tag, message: "Peripheral is ready to send updates again")
         guard let characteristic = characteristic else {
-            log(tag: tag, message: "Characteristic is nil after sending some updates, this should not happen, something went terribly wrong")
+            log(tag: BLEServer.tag, message: "Characteristic is nil after sending some updates, this should not happen, something went terribly wrong")
             return
         }
         
@@ -158,44 +173,66 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
             updateResult = peripheral.updateValue(nextUpdate, for: characteristic, onSubscribedCentrals: nil)
             
             if !updateResult {
-                log(tag: tag, message: "Cannot send the update chunk, the internal queue is full, returning to our own queue")
+                log(tag: BLEServer.tag, message: "Cannot send the update chunk, the internal queue is full, returning to our own queue")
                 outboundQueue.insert(nextUpdate, at: 0)
             }
             
         } while !outboundQueue.isEmpty && updateResult
+        
+        if outboundQueue.isEmpty {
+            onEventFired?(.init(type: .messageSent))
+        }
+    }
+    
+    func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
+        // there is no "client connected" callback in ios peripheral
+        // so we'll assume that the client is connected when it's subscribing to any characteristic
+        onEventFired?(.init(type: .clientConnected))
+        sendMessage(message: "ready") { result in
+            if case .failure(let error) = result {
+                log(tag: BLEServer.tag, message: "Could not send 'ready' message to the client", error: error)
+            }
+        }
+    }
+    
+    func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
+        // there is no "client disconnected" callback in ios peripheral
+        // so we'll assume that the client is disconnected when it's unsubscribing from any characteristic
+        onEventFired?(.init(type: .clientDisconnected))
+        onClientDisconnected()
     }
     
     private func handleWriteRequest(request: CBATTRequest) {
-        log(tag: tag, message: "Handling write request")
+        log(tag: BLEServer.tag, message: "Handling write request")
         
         defer {
-            log(tag: tag, message: "Responding to write request")
+            log(tag: BLEServer.tag, message: "Responding to write request")
             peripheralManager.respond(to: request, withResult: .success)
         }
         
         guard let data = request.value else {
-            log(tag: tag, message: "Update was empty")
+            log(tag: BLEServer.tag, message: "Update was empty")
             return
         }
         
         guard let dataStr = String(data: data, encoding: String.Encoding.utf8) else {
-            log(tag: tag, message: "Could not convert received data into a string")
+            log(tag: BLEServer.tag, message: "Could not convert received data into a string")
             return
         }
         
         if !dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces).isEmpty {
-            log(tag: tag, message: "Received data: \(dataStr)")
+            log(tag: BLEServer.tag, message: "Received data: \(dataStr)")
             if dataStr.contains("\0") {
-                log(tag: tag, message: "Received last update part, sending to RN")
+                log(tag: BLEServer.tag, message: "Received last update part, sending to RN")
                 let message = inboundBuffer + dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
                 inboundBuffer = ""
-                onMessageReceivedListener?(message)
+                onEventFired?(MessageReceivedEvent(message: message))
             } else {
-                log(tag: tag, message: "Received partial update, buffering...")
+                log(tag: BLEServer.tag, message: "Received partial update, buffering...")
                 inboundBuffer += dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
             }
         } else {
-            log(tag: tag, message: "Update was empty")
+            log(tag: BLEServer.tag, message: "Update was empty")
         }
     }
     
