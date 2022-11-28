@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		63048A562934165300EC7BF5 /* BLEServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63048A552934165300EC7BF5 /* BLEServer.swift */; };
+		6338BC482934F981003286FE /* MessageSplitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6338BC472934F981003286FE /* MessageSplitter.swift */; };
 		6373FBEE290D6E5F00DB22BB /* BLEModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6373FBED290D6E5F00DB22BB /* BLEModule.swift */; };
 		6373FBF5290D714400DB22BB /* BLEModuleExport.m in Sources */ = {isa = PBXBuildFile; fileRef = 6373FBF4290D714400DB22BB /* BLEModuleExport.m */; };
 		639275CA290ED3AD00713511 /* BLEEventType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639275C9290ED3AD00713511 /* BLEEventType.swift */; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		4523902D931F99DFFA85303A /* Pods-Ble.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ble.release.xcconfig"; path = "Target Support Files/Pods-Ble/Pods-Ble.release.xcconfig"; sourceTree = "<group>"; };
 		63048A552934165300EC7BF5 /* BLEServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEServer.swift; sourceTree = "<group>"; };
+		6338BC472934F981003286FE /* MessageSplitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSplitter.swift; sourceTree = "<group>"; };
 		6373FBED290D6E5F00DB22BB /* BLEModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEModule.swift; sourceTree = "<group>"; };
 		6373FBF2290D6F0400DB22BB /* Ble-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Ble-Bridging-Header.h"; sourceTree = "<group>"; };
 		6373FBF4290D714400DB22BB /* BLEModuleExport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BLEModuleExport.m; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				6338BC472934F981003286FE /* MessageSplitter.swift */,
 				63048A552934165300EC7BF5 /* BLEServer.swift */,
 				639275C9290ED3AD00713511 /* BLEEventType.swift */,
 				63A673EB290EA10F00D80A11 /* Peripheral.swift */,
@@ -191,6 +194,7 @@
 				6373FBEE290D6E5F00DB22BB /* BLEModule.swift in Sources */,
 				639275CA290ED3AD00713511 /* BLEEventType.swift in Sources */,
 				6373FBF5290D714400DB22BB /* BLEModuleExport.m in Sources */,
+				6338BC482934F981003286FE /* MessageSplitter.swift in Sources */,
 				63A673E4290E7EDB00D80A11 /* BLEClient.swift in Sources */,
 				63A673E6290E7F0400D80A11 /* Constants.swift in Sources */,
 				63048A562934165300EC7BF5 /* BLEServer.swift in Sources */,

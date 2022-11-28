@@ -24,6 +24,8 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
     
     private var advertiseCompletion: ((Result<Any?, BLEError>) -> Void)?
     
+    private var outboundQueue: [Data] = []
+    
     func isReady() -> Bool {
         return true
     }
@@ -66,8 +68,17 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
             return
         }
         
-        // TODO: implement message splitter
-        peripheralManager.updateValue(Data(message.appending("\0").utf8), for: characteristic, onSubscribedCentrals: nil)
+        let chunks = splitMessage(data: Data(message.utf8), maxChunkLength: 180)
+        
+        for i in chunks.indices {
+            let result = peripheralManager.updateValue(chunks[i], for: characteristic, onSubscribedCentrals: nil)
+            if !result {
+                log(tag: tag, message: "Cannot send the update chunk, the internal queue is full, adding to our own queue")
+                outboundQueue.append(contentsOf: chunks.dropFirst(i))
+                break
+            }
+        }
+        
     }
 
     func finish() -> Void {
@@ -126,6 +137,32 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
         requests.forEach { request in
             handleWriteRequest(request: request)
         }
+    }
+    
+    func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
+        // peripheral is ready to send updates again, taking from the queue
+        log(tag: tag, message: "Peripheral is ready to send updates again")
+        guard let characteristic = characteristic else {
+            log(tag: tag, message: "Characteristic is nil after sending some updates, this should not happen, something went terribly wrong")
+            return
+        }
+        
+        var updateResult = false
+        
+        repeat {
+            if outboundQueue.isEmpty {
+                break
+            }
+            
+            let nextUpdate = outboundQueue.removeFirst()
+            updateResult = peripheral.updateValue(nextUpdate, for: characteristic, onSubscribedCentrals: nil)
+            
+            if !updateResult {
+                log(tag: tag, message: "Cannot send the update chunk, the internal queue is full, returning to our own queue")
+                outboundQueue.insert(nextUpdate, at: 0)
+            }
+            
+        } while !outboundQueue.isEmpty && updateResult
     }
     
     private func handleWriteRequest(request: CBATTRequest) {
