@@ -15,7 +15,10 @@ class BLEModule: RCTEventEmitter {
     
     private let PAYLOAD_STRING_KEY = "payload"
     
+    private let tag = "BLEModule"
+    
     private let bleClient = BLEClient()
+    private let bleServer = BLEServer()
     
     @objc(supportedEvents)
     override func supportedEvents() -> [String]! {
@@ -29,33 +32,51 @@ class BLEModule: RCTEventEmitter {
     
     @objc(generateBleId:reject:)
     func generateBleId(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) -> Void {
-        // TODO: implement this functionality
-        resolve?(nil)
+        bleServer.generateBleId(completion: { result in
+            switch (result) {
+            case .success(let bleId):
+                resolve?(bleId)
+            case .failure(let error):
+                reject?(nil, nil, error)
+            }
+        })
     }
     
     @objc(advertise:resolve:reject:)
     func advertise(_ bleId: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        // TODO: implement this functionality
-        resolve?(nil)
+        bleServer.advertise(bleId, completion: { result in
+            switch (result) {
+            case .success(_):
+                resolve?(nil)
+            case .failure(let error):
+                reject?(nil, nil, error)
+            }
+        })
     }
     
     @objc(stopAdvertise:reject:)
     func stopAdvertise(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        // TODO: implement this functionality
+        bleServer.stopAdvertise()
         resolve?(nil)
     }
     
     @objc(start)
     func start() -> Void {
-        bleClient.start()
-        bleClient.onMessageReceivedListener = { [weak self] value in
+        let onMesseageReceived = { [weak self] (value: String) -> Void in
             self?.sendEvent(withName: BLEEventType.MessageReceived.rawValue, body: [self?.PAYLOAD_STRING_KEY: value])
         }
+        
+        bleClient.start()
+        bleClient.onMessageReceivedListener = onMesseageReceived
+        
+        bleServer.start()
+        bleServer.onMessageReceivedListener = onMesseageReceived
     }
     
     @objc(stop)
     func stop() -> Void {
         bleClient.stop()
+        bleServer.stop()
     }
     
     @objc(scan:stopIfFound:resolve:reject:)
@@ -90,13 +111,27 @@ class BLEModule: RCTEventEmitter {
     
     @objc(sendMessage:resolve:reject:)
     func sendMessage(_ message: String, resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
-        bleClient.sendMessage(message: message) { result in
-            switch (result) {
-            case .success(_):
-                resolve?(nil)
-            case .failure(let error):
-                reject?(nil, nil, error)
+        if (bleClient.isReady()) {
+            bleClient.sendMessage(message: message) { result in
+                switch (result) {
+                case .success(_):
+                    resolve?(nil)
+                case .failure(let error):
+                    reject?(nil, nil, error)
+                }
             }
+        } else if (bleServer.isReady()) {
+            bleServer.sendMessage(message: message) { result in
+                switch (result) {
+                case .success(_):
+                    resolve?(nil)
+                case .failure(let error):
+                    reject?(nil, nil, error)
+                }
+            }
+        } else {
+            log(tag: tag, message: "No one to send the message to")
+            reject?(nil, nil, BLEError(message: "No one to send the message to"))
         }
     }
     
@@ -109,6 +144,7 @@ class BLEModule: RCTEventEmitter {
     @objc(finish:reject:)
     func finish(_ resolve: RCTPromiseResolveBlock?, reject: RCTPromiseRejectBlock?) {
         bleClient.finish()
+        bleServer.finish()
         resolve?(nil)
     }
     

@@ -211,7 +211,6 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
                 }
 
                 connectedPeripheralManager = ClientBleManager {
-                    Log.d(MODULE_NAME, "shit received $it")
                     if (it.trim() == "ready") {
                         Log.d(MODULE_NAME, "Peripheral ready message received")
                         // android client is not ready to receive messages when the peripheral is ready so this code is probably not going to be called

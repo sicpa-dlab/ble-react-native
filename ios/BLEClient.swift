@@ -30,6 +30,12 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     
     private var inboundBuffer = ""    
     
+    func isReady() -> Bool {
+        return connectedPeripheral != nil
+        && connectCompletion == nil // no connection is in progress
+        && characteristic != nil
+    }
+    
     func start() {
         // check the state to init bluetooth manager
         centralManager.state
@@ -113,6 +119,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         if let peripheral = connectedPeripheral {
             centralManager.cancelPeripheralConnection(peripheral)
             connectedPeripheral = nil
+            characteristic = nil
             log(tag: tag, message: "Disconnecting from \(peripheral.identifier)")
         }
     }
@@ -157,6 +164,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         connectedPeripheral = nil
         log(tag: tag, error: bleError)
         connectCompletion?(.failure(bleError))
+        connectCompletion = nil
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -164,6 +172,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             let bleError = BLEError(message: "Error discovering services of peripheral \(peripheral.identifier.uuidString)", cause: error)
             log(tag: tag, error: bleError)
             connectCompletion?(.failure(bleError))
+            connectCompletion = nil
         } else {
             log(tag: tag, message: "Successfully discovered services, looking for our service...")
             
@@ -174,6 +183,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 let bleError = BLEError(message: "Our service was not found, something went horribly wrong")
                 log(tag: tag, error: bleError)
                 connectCompletion?(.failure(bleError))
+                connectCompletion = nil
             }
         }
     }
@@ -183,6 +193,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             let bleError = BLEError(message: "Error discovering characteristics of peripheral \(peripheral.identifier.uuidString)", cause: error)
             log(tag: tag, error: bleError)
             connectCompletion?(.failure(bleError))
+            connectCompletion = nil
         } else {
             log(tag: tag, message: "Successfully discovered characteristics, looking for our characteristic...")
             
@@ -194,6 +205,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 let bleError = BLEError(message: "Our characteristic was not found, something went horribly wrong")
                 log(tag: tag, error: bleError)
                 connectCompletion?(.failure(bleError))
+                connectCompletion = nil
             }
         }
     }
@@ -215,6 +227,7 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             log(tag: tag, message: "Received data: \(dataStr)")
             if dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces) == "ready" {
                 connectCompletion?(.success(nil))
+                connectCompletion = nil
             } else if dataStr.contains("\0") {
                 log(tag: tag, message: "Received last update part, sending to RN")
                 let message = inboundBuffer + dataStr.trimmingCharacters(in: zeroCharacterSetWithWhitespaces)
