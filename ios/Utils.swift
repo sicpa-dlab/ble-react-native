@@ -10,7 +10,7 @@ import Foundation
 
 func log(tag: String, message: String, error: Error? = nil) {
     if let error = error {
-        NSLog("%s: %s \n %s", tag, message, error.localizedDescription)
+        NSLog("%@: %@ \n %@", tag, message, error.localizedDescription)
     } else {
         NSLog("%@: %@", tag, message)
     }
