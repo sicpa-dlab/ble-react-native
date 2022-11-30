@@ -196,6 +196,7 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
         // there is no "client connected" callback in ios peripheral
         // so we'll assume that the client is connected when it's subscribing to any characteristic
         onEventFired?(.init(type: .clientConnected))
+        stopAdvertise()
         sendMessage(message: "ready") { result in
             if case .failure(let error) = result {
                 log(tag: BLEServer.tag, message: "Could not send 'ready' message to the client", error: error)
