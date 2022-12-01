@@ -124,6 +124,7 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     @SuppressLint("MissingPermission")
     @ReactMethod
     fun scan(filterBleId: String, stopIfFound: Boolean, promise: Promise) {
+        Log.d(MODULE_NAME, "Scanning with bleId: $filterBleId")
         val newScanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 result ?: return
@@ -299,14 +300,10 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
 
     @SuppressLint("MissingPermission")
     private fun validateScanResult(filterBleId: String, scanResult: ScanResult): Result<Boolean> {
-        if (scanResult.device?.name == filterBleId) {
-            return Result.success(true)
-        } else {
-            val manufacturerData =
-                scanResult.scanRecord?.getManufacturerSpecificData(manufacturerId) ?: return Result.success(false)
+        val manufacturerData =
+            scanResult.scanRecord?.getManufacturerSpecificData(manufacturerId) ?: return Result.success(false)
 
-            return Result.success(String(manufacturerData) == filterBleId)
-        }
+        return Result.success(String(manufacturerData) == filterBleId)
     }
 
     private fun sendEvent(event: BLEEventType) {
