@@ -283,14 +283,18 @@ class BLEClient : NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
     
     private func validatePeripheral(peripheral: Peripheral, bleId: String) -> Bool {
-        let manufacturerData = peripheral.advertisementData[CBAdvertisementDataManufacturerDataKey]
-        if let data = manufacturerData as? Data {
-            let sanitizedData = data.dropFirst(2)   // first two bytes is manufacturer id
-            let extractedBleId = String(decoding: sanitizedData, as: Unicode.UTF8.self)
-            return bleId == extractedBleId
-        }
+        if peripheral.advertisementData[CBAdvertisementDataLocalNameKey] as? String? == bleId {
+            return true
+        } else {
+            let manufacturerData = peripheral.advertisementData[CBAdvertisementDataManufacturerDataKey]
+            if let data = manufacturerData as? Data {
+                let sanitizedData = data.dropFirst(2)   // first two bytes is manufacturer id
+                let extractedBleId = String(decoding: sanitizedData, as: Unicode.UTF8.self)
+                return bleId == extractedBleId
+            }
 
-        return false
+            return false
+        }
     }
 
 }
