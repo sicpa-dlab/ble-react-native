@@ -52,13 +52,7 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
         }
 
         log(tag: BLEServer.tag, message: "Starting BLE advertise")
-        var manufacturerData = Data([0xff, 0xff]) // manufacturer id, 0xffff is reserved for general purposes
-        manufacturerData.append(contentsOf: bleId.utf8)
-        peripheralManager.startAdvertising([
-            CBAdvertisementDataLocalNameKey: "VTP",
-            CBAdvertisementDataManufacturerDataKey: NSData(data: manufacturerData),
-            CBAdvertisementDataServiceUUIDsKey: [SERVICE_ID]
-        ])
+        peripheralManager.startAdvertising([CBAdvertisementDataLocalNameKey : bleId, CBAdvertisementDataServiceUUIDsKey: [SERVICE_ID]])
     }
 
     func stopAdvertise() {
