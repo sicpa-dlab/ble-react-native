@@ -76,6 +76,9 @@ class BLEModule(private val reactContext: ReactApplicationContext) :
     @SuppressLint("MissingPermission")
     @ReactMethod
     fun advertise(bleId: String, promise: Promise) {
+        stopAdvertise()
+        cleanUpServer()
+
         val newAdvertiseCallback = object : AdvertiseCallback() {
             override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
                 super.onStartSuccess(settingsInEffect)
