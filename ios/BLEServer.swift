@@ -51,6 +51,10 @@ class BLEServer: NSObject, CBPeripheralManagerDelegate {
             addServices()
         }
 
+        if peripheralManager.isAdvertising {
+            peripheralManager.stopAdvertising()
+        }
+
         log(tag: BLEServer.tag, message: "Starting BLE advertise")
         peripheralManager.startAdvertising([CBAdvertisementDataLocalNameKey : bleId, CBAdvertisementDataServiceUUIDsKey: [SERVICE_ID]])
     }
