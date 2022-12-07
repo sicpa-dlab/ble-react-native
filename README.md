@@ -147,9 +147,27 @@ after receiving "ready" messages. iOS BLE server does not need this to work, but
 The problem described above seems to only happen between Android BLE server and iOS BLE client. It does not happen for any 
 other cases (Android<->Android, Android client <-> iOS server, iOS<->iOS)
 
+### Client connected/disconnected events on iOS
 
+iOS BLE server native API does not notify us when a client has connected or disconnected. Due to the specifics of out use-case
+we can assume that every client must subscribe to our characteristic notifications, which iOS will let us know about. Therefore,
+we can assume that the client has connected to our server if it has subscribed to the characteristic notifications and disconnected
+if the client has unsubscribed.
 
-* using notifications callback on ios as "connected" and "disconnected" events
-* mtu
-* long write
-* hardcoded 0xffff manufacturer id
+### MTU
+
+MTU is a challenging topic in the world of smartphone BLE: different manufacturers implement this functionality differently
+making it unreliable. Because of this we hardcode the MTU, it's 185 - iOS's default MTU.
+
+### Long write
+
+To support long write, manual message splitter and message merger were implemented. Messages are split into MTU sized chunks
+automatically and sent separately. The terminal character is `\0`. The receiving end then can buffer all the messages until
+it receives the terminal character.
+
+### Hardcoded manufacturer id
+
+To filter the peers while scanning, we put an arbitrary string, bleId, into the advert. We found that the most reliable way
+to include this data into adverts is to put into Manufacturer Data. The first two bytes of Manufacturer Data, as per BLE protocol,
+is Manufacturer ID. Manufacturer ID needs to be registered to be recognized by third parties. We don't need that
+for now so we use the general Manufacturer ID, reserved for testing - 0xFFFF.
