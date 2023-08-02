@@ -15,37 +15,39 @@ The package will be published automatically from `main` branch by GitHub Actions
 
 ## Features
 
-* Central (client) mode
-  * Find a peripheral with a specified filter
-  * Connect to a peripheral (one at a time)
-  * Send messages to the peripheral (supports long write)
-  * Receive messages from the peripheral
-* Peripheral (server) mode
-  * Advertise a service with a writable characteristic with a specified tag
-  * Send messages to a connected central (supports long write)
-  * Receive messages from the central
-* Get notified when the following events happen:
-  * Message received 
-  * Started message receive 
-  * Connecting to server 
-  * Connected to server 
-  * Disconnecting from server 
-  * Disconnected from server 
-  * Client connected 
-  * Client disconnected 
-  * Sending message 
-  * Message sent
+- Central (client) mode
+  - Find a peripheral with a specified filter
+  - Connect to a peripheral (one at a time)
+  - Send messages to the peripheral (supports long write)
+  - Receive messages from the peripheral
+- Peripheral (server) mode
+  - Advertise a service with a writable characteristic with a specified tag
+  - Send messages to a connected central (supports long write)
+  - Receive messages from the central
+- Get notified when the following events happen:
+  - Message received
+  - Started message receive
+  - Connecting to server
+  - Connected to server
+  - Disconnecting from server
+  - Disconnected from server
+  - Client connected
+  - Client disconnected
+  - Sending message
+  - Message sent
 
 ## Usage
 
 For Android:
-* The library does not manage permissions, you need to request them yourself.
-* The library does not manage bluetooth state, you need to ensure that it's enabled.
+
+- The library does not manage permissions, you need to request them yourself.
+- The library does not manage bluetooth state, you need to ensure that it's enabled.
 
 For iOS:
-* The library will ask for Bluetooth permission one time, at the time of first interaction. If the user denies the permission, you need to request it yourself.
-* The library does not manage bluetooth state, you need to ensure that it's enabled.
-* Make sure you provide [NSBluetoothAlwaysUsageDescription](https://developer.apple.com/documentation/bundleresources/information_property_list/nsbluetoothalwaysusagedescription) in your `Info.plist` for iOS 13 and later, otherwise [NSBluetoothPeripheralUsageDescription](https://developer.apple.com/documentation/bundleresources/information_property_list/nsbluetoothperipheralusagedescription).
+
+- The library will ask for Bluetooth permission one time, at the time of first interaction. If the user denies the permission, you need to request it yourself.
+- The library does not manage bluetooth state, you need to ensure that it's enabled.
+- Make sure you provide [NSBluetoothAlwaysUsageDescription](https://developer.apple.com/documentation/bundleresources/information_property_list/nsbluetoothalwaysusagedescription) in your `Info.plist` for iOS 13 and later, otherwise [NSBluetoothPeripheralUsageDescription](https://developer.apple.com/documentation/bundleresources/information_property_list/nsbluetoothperipheralusagedescription).
 
 Example establishing a connection between two devices and sending some messages:
 
@@ -67,7 +69,7 @@ BLE.addClientDisconnectedListener(() => {
 
 ```typescript
 // phone 2
-import {BLE} from "./ble"
+import { BLE } from "./ble"
 
 await BLE.start() // for iOS see Nuances section
 const peripheralId = await BLE.scan("1234a")
@@ -88,7 +90,7 @@ if (peripheral) {
 
 ### Running
 
-#### 1. Launching Metro bundler 
+#### 1. Launching Metro bundler
 
 1. Go to `demo`
 2. Execute `yarn install`
@@ -111,8 +113,8 @@ if (peripheral) {
 
 ### Demo usage
 
-Demo allows you to connect two devices and exchange message. There are input field between the buttons, use them 
-to enter info to be used by the lib or read the info needed on the other device (for example, pressing the Advertise 
+Demo allows you to connect two devices and exchange message. There are input field between the buttons, use them
+to enter info to be used by the lib or read the info needed on the other device (for example, pressing the Advertise
 button will output the advertisement tag which you'll need to enter into the same field on the other phone).
 
 For events and to verify that the messages are actually delivered, check the logs.
@@ -122,13 +124,13 @@ For events and to verify that the messages are actually delivered, check the log
 ### BLE.start() on ios
 
 Bluetooth adapter is initialized lazily on iOS, so the first time you access it, it takes some time (milliseconds scale)
-to initialize. Executing some bluetooth action (e.g. advertise) immediately after calling `start()` might result in an 
+to initialize. Executing some bluetooth action (e.g. advertise) immediately after calling `start()` might result in an
 `incorrect bluetooth state` error. This can be fixed by making the `start()` function async and only resolving the promise
 when the adapter initializes.
 
 ### Hardcoded Service and Characteristic UUIDs
 
-This library was intended to be used to cover one very specific use-case, so the BLE's Service and Characteristic UUIDs 
+This library was intended to be used to cover one very specific use-case, so the BLE's Service and Characteristic UUIDs
 are hardcoded into the library. This can be easily changed later if the need for broader usage of the library arises.
 
 ### One-to-one connection
@@ -138,13 +140,13 @@ this and can only establish connections between two devices.
 
 ### "Ready" message
 
-This depends on the peculiarity of the other library that we depend on: Nordic's BLE library. The Peripheral needs 
+This depends on the peculiarity of the other library that we depend on: Nordic's BLE library. The Peripheral needs
 to discover Central's Services before being able to interact with it. This means that Android BLE server is ready to send
 and receive messages slightly after iOS BLE client can, which might result in lost messages.
-To fix that, Android BLE server sends "ready" message as soon as it's ready. Clients will resolve `connect` Promise only 
-after receiving "ready" messages. iOS BLE server does not need this to work, but sends the "ready" message for compatibility. 
+To fix that, Android BLE server sends "ready" message as soon as it's ready. Clients will resolve `connect` Promise only
+after receiving "ready" messages. iOS BLE server does not need this to work, but sends the "ready" message for compatibility.
 
-The problem described above seems to only happen between Android BLE server and iOS BLE client. It does not happen for any 
+The problem described above seems to only happen between Android BLE server and iOS BLE client. It does not happen for any
 other cases (Android<->Android, Android client <-> iOS server, iOS<->iOS)
 
 ### Client connected/disconnected events on iOS
